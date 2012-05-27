@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+        <head>
+                <title>three.js webgl - geometry hierarchy</title>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+                <style>
+                        body {
+                                background:#fff;
+                                padding:0;
+                                margin:0;
+                                font-weight: bold;
+                                overflow:hidden;
+                        }
+                </style>
+        </head>
+        <body>
+
+                <script src="js/Three.js"></script>
+
+                <script>
+
+                        var container;
+
+                        var camera, scene, renderer;
+
+                        var geometry, group;
+
+                        var mouseX = 0, mouseY = 0;
+                        var sphere;
+                        var torso;
+                        var leftleg, rightleg;
+                        var body, shoulder, head;
+                        var leftarm, rightarm;
+                        var lthigh, lcalf, lfoot;
+                        var rthigh, rcalf, rfoot;
+                        var luparm, llowarm, lhand;
+                        var ruparm, rlowarm, rhand;
+                        var windowHalfX = window.innerWidth / 2;
+                        var windowHalfY = window.innerHeight / 2;
+
+                        document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
+                        init();
+                        animate();
+
+                        function init() {
+
+                                container = document.createElement( 'div' );
+                                document.body.appendChild( container );
+
+                                scene = new THREE.Scene();
+                                scene.fog = new THREE.Fog( 0xffffff, 1, 100 );
+
+                                camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 100 );
+                                camera.position.z = 5;
+                                scene.add( camera );
+
+                                var geometry = new THREE.SphereGeometry( 1.0, 32, 32 );
+                                var material = new THREE.MeshNormalMaterial();
+
+                                torso = new THREE.Object3D();
+                                leftleg  = new THREE.Object3D();
+                                rightleg  = new THREE.Object3D();
+                                body  = new THREE.Object3D();
+                                shoulder = new THREE.Object3D();
+                                head =  new THREE.Object3D();
+                                leftarm = new THREE.Object3D();
+                                rightarm = new THREE.Object3D();
+
+                                lfoot = new THREE.Object3D();
+                                lcalf = new THREE.Object3D();
+                                lthigh = new THREE.Object3D();
+
+                                rfoot = new THREE.Object3D();
+                                rcalf = new THREE.Object3D();
+                                rthigh = new THREE.Object3D();
+
+                                luparm = new THREE.Object3D();
+                                ruparm = new THREE.Object3D();
+
+                                llowarm = new THREE.Object3D();
+                                lhand = new THREE.Object3D();
+                                rlowarm = new THREE.Object3D();
+                                rhand = new THREE.Object3D();
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.z = 0.08;
+                                sphere.scale.x = 0.275;
+                                sphere.scale.y = 0.152;
+                                sphere.scale.z = 0.153;
+                                torso.add( sphere );
+                                leftleg.position.x = -0.178;
+                                torso.add(leftleg);
+                                // body.rotation.x = exten
+                                // body.rotation.y = btwis
+                                // body.rotation.z = rot
+                                torso.add(body);
+                                rightleg.position.x = 0.178;
+                                torso.add(rightleg);
+
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.z = 0.62
+                                sphere.scale.x = 0.306;
+                                sphere.scale.y = 0.21;
+                                sphere.scale.z = 0.5;
+                                body.add(sphere)
+
+                                shoulder.position.z = 1;
+                                // shoulder.rotation.x = exten
+                                // shoulder.rotation.y = btwis
+                                // shoulder.rotation.z = rot
+                                body.add(shoulder);
+
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.scale.x = 0.45;
+                                sphere.scale.y = 0.153;
+                                sphere.scale.z = 0.12;
+                                shoulder.add(sphere);
+
+                                head.position.z = 0.153
+                                //head.rotation.x = nod
+                                //head.rotation..z = neck
+                                shoulder.add(head);
+
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.x = 0;
+                                sphere.position.y = 0;
+                                sphere.position.z = 0.4;
+                                sphere.scale.x = 0.2;
+                                sphere.scale.y = 0.23;
+                                sphere.scale.z = 0.3;
+                                head.add(sphere);
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.x = 0;
+                                sphere.position.y = -0.255;
+                                sphere.position.z = 0.42;
+                                sphere.scale.x = 0.035;
+                                sphere.scale.y = 0.075;
+                                sphere.scale.z = 0.035;
+                                head.add(sphere);
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.x = 0;
+                                sphere.position.y = 0;
+                                sphere.position.z = 0.07;
+                                sphere.scale.x = 0.065;
+                                sphere.scale.y = 0.065;
+                                sphere.scale.z = 0.14;
+                                head.add(sphere);
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.x = 0;
+                                sphere.position.y = -0.162;
+                                sphere.position.z = 0.239;
+                                sphere.scale.x = 0.0533;
+                                sphere.scale.y = 0.0508;
+                                sphere.scale.z = 0.0506;
+                                head.add(sphere);
+
+                                leftarm.position.x = -0.45
+                                //leftarm.rot.y = lsid
+                                //leftarm.rot.x = lshou
+                                //leftarm.rot.z = latwis
+                                shoulder.add(leftarm);
+
+                                rightarm.position.x = 0.45
+                                //leftarm.rot.y = rsid
+                                //leftarm.rot.x = rshou
+                                //leftarm.rot.z = ratwis
+                                shoulder.add(rightarm);
+
+                                leftarm.add(luparm);
+                                llowarm.position.z = -0.55;
+                                //lowarm.rotation.x = lelbo
+                                luparm.add(llowarm);
+                                lhand.position.z = -0.5
+                                llowarm.add(lhand);
+
+                                rightarm.add(ruparm);
+                                rlowarm.position.z = -0.55;
+                                //lowarm.rotation.x = lelbo
+                                ruparm.add(rlowarm);
+                                rhand.position.z = -0.5;
+                                rlowarm.add(rhand);
+
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.z = -0.275
+                                sphere.scale.x = 0.09;
+                                sphere.scale.y = 0.09;
+                                sphere.scale.z = 0.275;
+                                luparm.add(sphere);
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.z = -0.275
+                                sphere.scale.x = 0.09;
+                                sphere.scale.y = 0.09;
+                                sphere.scale.z = 0.275;
+                                ruparm.add(sphere);
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.scale.x = 0.08
+                                sphere.scale.y = 0.08
+                                sphere.scale.z = 0.25
+                                sphere.position.z = -0.275
+                                llowarm.add(sphere);
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.scale.x = 0.08
+                                sphere.scale.y = 0.08
+                                sphere.scale.z = 0.25
+                                sphere.position.z = -0.275
+                                rlowarm.add(sphere);
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.scale.x = 0.052;
+                                sphere.scale.y = 0.091;
+                                sphere.scale.z = 0.155;
+                                sphere.position.z = -0.116;
+                                lhand.add(sphere);
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.scale.x = 0.052;
+                                sphere.scale.y = 0.091;
+                                sphere.scale.z = 0.155;
+                                sphere.position.z = -0.116;
+                                rhand.add(sphere);
+
+                                //leftleg.rotation.z = lhip;
+                                //leftleg.roataton.y = lout;
+                                //leftleg.rotation.z = -lhip;
+                                //leftlet.rotation.z = ltwis;
+
+                                leftleg.add(lthigh);
+                                lcalf.position.z = -0.85;
+                                //lcalf.rot.x = lknee
+                                lthigh.add(lcalf);
+                                lfoot.position.z = -0.84;
+                                //lfoot.rot.x = lankl
+                                lcalf.add(lfoot);
+
+
+                                rightleg.add(rthigh);
+                                rcalf.position.z = -0.85;
+                                //lcalf.rot.x = lknee
+                                rthigh.add(rcalf);
+                                rfoot.position.z = -0.84;
+                                //lfoot.rot.x = lankl
+                                rcalf.add(rfoot);
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.z = -0.425;
+                                sphere.scale.x =0.141;
+                                sphere.scale.y=0.141;
+                                sphere.scale.z=0.425
+                                lthigh.add(sphere);
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.z = -0.425;
+                                sphere.scale.x =0.141;
+                                sphere.scale.y=0.141;
+                                sphere.scale.z=0.425
+                                rthigh.add(sphere);
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.scale.x=0.05;
+                                sphere.scale.y=0.05;
+                                sphere.scale.z=0.05;
+                                lcalf.add(sphere);
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.scale.x=0.05;
+                                sphere.scale.y=0.05;
+                                sphere.scale.z=0.05;
+                                rcalf.add(sphere);
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.z = -0.425;
+                                sphere.scale.x=0.1;
+                                sphere.scale.y=0.1;
+                                sphere.scale.z=0.425;
+                                lcalf.add(sphere);
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.z = -0.425;
+                                sphere.scale.x=0.1;
+                                sphere.scale.y=0.1;
+                                sphere.scale.z=0.425;
+                                rcalf.add(sphere);
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.scale.x=0.05;
+                                sphere.scale.y=0.04;
+                                sphere.scale.z=0.04;
+                                lfoot.add(sphere);
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.scale.x=0.05;
+                                sphere.scale.y=0.04;
+                                sphere.scale.z=0.04;
+                                rfoot.add(sphere);
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.y = 0.05;
+                                sphere.position.z = -0.05;
+                                sphere.scale.x=0.04;
+                                sphere.scale.y=0.04;
+                                sphere.scale.z=0.04;
+                                lfoot.add(sphere);
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.y = 0.05;
+                                sphere.position.z = -0.05;
+                                sphere.scale.x=0.04;
+                                sphere.scale.y=0.04;
+                                sphere.scale.z=0.04;
+                                rfoot.add(sphere);
+
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.y = -0.015;
+                                sphere.position.z = -0.05;
+                                sphere.rotation.x = -10;
+                                sphere.scale.x=0.08;
+                                sphere.scale.y=0.19;
+                                sphere.scale.z=0.05;
+                                lfoot.add(sphere);
+                                sphere = new THREE.Mesh( geometry, material );
+                                sphere.position.y = -0.015;
+                                sphere.position.z = -0.05;
+                                sphere.rotation.x = -10;
+                                sphere.scale.x=0.08;
+                                sphere.scale.y=0.19;
+                                sphere.scale.z=0.05;
+                                rfoot.add(sphere);
+
+                                scene.add( torso );
+
+                                renderer = new THREE.WebGLRenderer();
+                                renderer.setSize( window.innerWidth, window.innerHeight );
+                                renderer.sortObjects = false;
+
+                                container.appendChild( renderer.domElement );
+
+                        }
+
+                        function onDocumentMouseMove(event) {
+
+                                mouseX = ( event.clientX - windowHalfX );
+                                mouseY = ( event.clientY - windowHalfY );
+
+                        }
+
+                        //
+
+                        function animate() {
+
+                                requestAnimationFrame( animate );
+
+                                render();
+
+
+                        }
+
+                        function render() {
+
+                                var time = Date.now() * 0.001;
+
+                                camera.position.x += ( mouseX - camera.position.x ) * .0005;
+                                camera.position.y += ( - mouseY - camera.position.y ) * .0005;
+
+                                camera.lookAt( scene.position );
+
+
+                                renderer.render( scene, camera );
+
+                        }
+
+                </script>
+
+        </body>
+</html>

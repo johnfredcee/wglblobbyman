@@ -26,6 +26,18 @@
 					<div id="blobbyparam">Nod</div>
 					<div id="slidernod">
 					</div>
+					<div id="blobbyparam">Left elbow</div>
+					<div id="sliderlelbo">
+					</div>
+					<div id="blobbyparam">Right elbow</div>
+					<div id="sliderrelbo">
+					</div>
+					<div id="blobbyparam">Left ankle</div>
+					<div id="sliderlankl">
+					</div>
+					<div id="blobbyparam">Right ankle</div>
+					<div id="sliderrankl">
+					</div>
 				</div>
 				<script>
 
@@ -54,6 +66,10 @@
 						var rot   = 0;
 						var neck  = 0;
 						var nod   = 0;
+					    var lelbo = 0;
+						var relbo = 0;
+						var lankl = 0;
+						var rankl = 0;
 
 					$('#dialog').dialog({ position:  [ 20, 20 ], height: 520  });
 
@@ -88,6 +104,31 @@
 															neck = $("#sliderneck").slider( "value" );
 															render(); }) } });
 
+					$( "#sliderlelbo" ).slider({ title : "Left elbow", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
+											   slide: function(e, ui) {
+											 		    $(document).ready(function() {
+															lelbo = $("#sliderlelbo").slider( "value" );
+															render(); }) } });
+
+					$( "#sliderlankl" ).slider({ title : "Left ankle", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
+											   slide: function(e, ui) {
+											 		    $(document).ready(function() {
+															lankl = $("#sliderlankl").slider( "value" );
+															render(); }) } });
+
+
+					$( "#sliderrelbo" ).slider({ title : "Right elbow", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
+											   slide: function(e, ui) {
+											 		    $(document).ready(function() {
+															relbo = $("#sliderrelbo").slider( "value" );
+															render(); }) } });
+
+					$( "#sliderrankl" ).slider({ title : "Right ankle", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
+											   slide: function(e, ui) {
+											 		    $(document).ready(function() {
+															rankl = $("#sliderrankl").slider( "value" );
+															render(); }) } });
+
 					//	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
 
@@ -101,6 +142,20 @@
 
 								head.rotation.x = nod;
 								head.rotation.z = neck;
+
+								//leftarm.rot.y = lsid
+								//leftarm.rot.x = lshou
+								//leftarm.rot.z = latwis
+								//
+								//rightarm.rot.y = rsid
+								//rightarm.rot.x = rshou
+								//rightarm.rot.z = ratwis
+								//
+								llowarm.rotation.x = lelbo
+								rlowarm.rotation.x = relbo
+
+								lfoot.rotation.x = lankl
+								rfoot.rotation.x = rankl
 
 								camera.position.x += ( mouseX - camera.position.x ) * .0005;
 								camera.position.y += ( - mouseY - camera.position.y ) * .0005;
@@ -271,14 +326,14 @@
 
 								leftarm.add(luparm);
 								llowarm.position.z = -0.55;
-								//lowarm.rotation.x = lelbo
+								//llowarm.rotation.x = lelbo
 								luparm.add(llowarm);
 								lhand.position.z = -0.5
 								llowarm.add(lhand);
 
 								rightarm.add(ruparm);
 								rlowarm.position.z = -0.55;
-								//lowarm.rotation.x = lelbo
+								//rlowarm.rotation.x = relbo
 								ruparm.add(rlowarm);
 								rhand.position.z = -0.5;
 								rlowarm.add(rhand);

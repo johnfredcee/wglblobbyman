@@ -11,9 +11,21 @@
 				<script src="js/jquery-ui-1.8.20.custom.min.js"></script>
 				<script src="js/Three.js"></script>
 				<div id="dialog" title="Blobby man">
-					<div id="sliderext"></div>
-					<div id="slidertwist"></div>
-					<div id="sliderrot"></div>
+					<div id="blobbyparam">Extension</div>
+					<div id="sliderext">
+					</div>
+					<div id="blobbyparam">Body twist</div>
+					<div id="slidertwist">
+					</div>
+					<div id="blobbyparam">Body rotation</div>
+					<div id="sliderrot">
+					</div>
+					<div id="blobbyparam">Neck</div>
+					<div id="sliderneck">
+					</div>
+					<div id="blobbyparam">Nod</div>
+					<div id="slidernod">
+					</div>
 				</div>
 				<script>
 
@@ -40,8 +52,11 @@
 						var exten = 0;
 						var btwis = 0;
 						var rot   = 0;
+						var neck  = 0;
+						var nod   = 0;
 
 					$('#dialog').dialog({ position:  [ 20, 20 ], height: 520  });
+
 					$( "#sliderext" ).slider({ title : "Extension", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
 											   slide : function(e, ui) {
 											 		    $(document).ready(function() {
@@ -54,12 +69,24 @@
 											 		    $(document).ready(function() {
 															btwis = $("#slidertwist").slider( "value" );
 															render(); }) } });
+
 					$( "#sliderrot" ).slider({ title : "Rotation", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
 											   slide: function(e, ui) {
 											 		    $(document).ready(function() {
 															rot = $("#sliderrot").slider( "value" );
 															render(); }) } });
 
+					$( "#slidernod" ).slider({ title : "Nod", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
+											   slide: function(e, ui) {
+											 		    $(document).ready(function() {
+															nod = $("#slidernod").slider( "value" );
+															render(); }) } });
+
+					$( "#sliderneck" ).slider({ title : "Neck rotation", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
+											   slide: function(e, ui) {
+											 		    $(document).ready(function() {
+															neck = $("#sliderneck").slider( "value" );
+															render(); }) } });
 
 					//	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
@@ -71,6 +98,9 @@
 								body.rotation.x = exten;
 								body.rotation.y = btwis;
 								body.rotation.z = rot;
+
+								head.rotation.x = nod;
+								head.rotation.z = neck;
 
 								camera.position.x += ( mouseX - camera.position.x ) * .0005;
 								camera.position.y += ( - mouseY - camera.position.y ) * .0005;
@@ -157,6 +187,7 @@
 								//shoulder.rotation.z = rot
 								body.add(shoulder);
 
+								// head --
 
 								sphere = new THREE.Mesh( geometry, material );
 								sphere.scale.x = 0.45;
@@ -165,8 +196,6 @@
 								shoulder.add(sphere);
 
 								head.position.z = 0.153
-								//head.rotation.x = nod
-								//head.rotation..z = neck
 								shoulder.add(head);
 
 
@@ -179,15 +208,36 @@
 								sphere.scale.z = 0.3;
 								head.add(sphere);
 
+								// nose
 								sphere = new THREE.Mesh( geometry, material );
 								sphere.position.x = 0;
 								sphere.position.y = -0.255;
-								sphere.position.z = 0.42;
+								sphere.position.z = 0.33;
 								sphere.scale.x = 0.035;
 								sphere.scale.y = 0.075;
 								sphere.scale.z = 0.035;
 								head.add(sphere);
 
+								// eyes
+								sphere = new THREE.Mesh( geometry, material );
+								sphere.position.x = -0.07;
+								sphere.position.y = -0.233;
+								sphere.position.z = 0.43;
+								sphere.scale.x = 0.065;
+								sphere.scale.y = 0.035;
+								sphere.scale.z = 0.035;
+								head.add(sphere);
+
+								sphere = new THREE.Mesh( geometry, material );
+								sphere.position.x = 0.07;
+								sphere.position.y = -0.233;
+								sphere.position.z = 0.43;
+								sphere.scale.x = 0.065;
+								sphere.scale.y = 0.035;
+								sphere.scale.z = 0.035;
+								head.add(sphere);
+
+								// neck
 								sphere = new THREE.Mesh( geometry, material );
 								sphere.position.x = 0;
 								sphere.position.y = 0;
@@ -197,12 +247,13 @@
 								sphere.scale.z = 0.14;
 								head.add(sphere);
 
+								// mouth
 								sphere = new THREE.Mesh( geometry, material );
 								sphere.position.x = 0;
 								sphere.position.y = -0.162;
 								sphere.position.z = 0.239;
-								sphere.scale.x = 0.0533;
-								sphere.scale.y = 0.0508;
+								sphere.scale.x = 0.0677;
+								sphere.scale.y = 0.04;
 								sphere.scale.z = 0.0506;
 								head.add(sphere);
 
@@ -250,13 +301,13 @@
 								sphere.scale.x = 0.08
 								sphere.scale.y = 0.08
 								sphere.scale.z = 0.25
-								sphere.position.z = -0.275
+								sphere.position.z = -0.25
 								llowarm.add(sphere);
 								sphere = new THREE.Mesh( geometry, material );
 								sphere.scale.x = 0.08
 								sphere.scale.y = 0.08
 								sphere.scale.z = 0.25
-								sphere.position.z = -0.275
+								sphere.position.z = -0.25
 								rlowarm.add(sphere);
 
 								sphere = new THREE.Mesh( geometry, material );

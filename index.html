@@ -1,599 +1,66 @@
 <!doctype html>
-<html lang="en">
-	<head>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-GB" xml:lang="en-GB">
+  <head>
 	<title>three.js webgl - geometry hierarchy</title>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<link rel="stylesheet" href="css/south-street/jquery-ui-1.8.20.custom.css" type="text/css" media="all" />
-	</head>
-	<body>
+  </head>
+  <body>
 	<script src="js/jquery-1.7.2.min.js"></script>
 	<script src="js/jquery-ui-1.8.20.custom.min.js"></script>
 	<script src="js/Three.js"></script>
+	<script src="js/blobbyman.js"></script>
 	<div id="dialog" title="Blobby man">
-	<div id="blobbyparam">Extension</div>
-	<div id="sliderext">
+	  <div id="blobbyparam">Extension</div>
+	  <div id="sliderext">
+	  </div>
+	  <div id="blobbyparam">Body twist</div>
+	  <div id="slidertwist">
+	  </div>
+	  <div id="blobbyparam">Body rotation</div>
+	  <div id="sliderrot">
+	  </div>
+	  <div id="blobbyparam">Neck</div>
+	  <div id="sliderneck">
+	  </div>
+	  <div id="blobbyparam">Nod</div>
+	  <div id="slidernod">
+	  </div>
+	  <div id="blobbyparam">Left Side</div>
+	  <div id="sliderlsid">
+	  </div>
+	  <div id="blobbyparam">Left Shoulder</div>
+	  <div id="sliderlshou">
+	  </div>
+	  <div id="blobbyparam">Left Arm Twist</div>
+	  <div id="sliderlatwis">
+	  </div>
+	  <div id="blobbyparam">Left elbow</div>
+	  <div id="sliderlelbo">
+	  </div>
+	  <div id="blobbyparam">Right Side</div>
+	  <div id="sliderrsid">
+	  </div>
+	  <div id="blobbyparam">Right Shoulder</div>
+	  <div id="sliderrshou">
+	  </div>
+	  <div id="blobbyparam">Right Arm Twist</div>
+	  <div id="sliderratwis">
+	  </div>
+	  <div id="blobbyparam">Right elbow</div>
+	  <div id="sliderrelbo">
+	  </div>
+	  <div id="blobbyparam">Left ankle</div>
+	  <div id="sliderlankl">
+	  </div>
+	  <div id="blobbyparam">Right ankle</div>
+	  <div id="sliderrankl">
+	  </div>
+	  <div id="blobbyparam">Left knee</div>
+	  <div id="sliderlknee">
+	  </div>
+	  <div id="blobbyparam">Right knee</div>
+	  <div id="sliderrknee">
+	  </div>
 	</div>
-	<div id="blobbyparam">Body twist</div>
-	<div id="slidertwist">
-	</div>
-	<div id="blobbyparam">Body rotation</div>
-	<div id="sliderrot">
-	</div>
-	<div id="blobbyparam">Neck</div>
-	<div id="sliderneck">
-	</div>
-	<div id="blobbyparam">Nod</div>
-	<div id="slidernod">
-	</div>
-	<div id="blobbyparam">Left Side</div>
-	<div id="sliderlsid">
-	</div>
-	<div id="blobbyparam">Left Shoulder</div>
-	<div id="sliderlshou">
-	</div>
-	<div id="blobbyparam">Left Arm Twist</div>
-	<div id="sliderlatwis">
-	</div>
-	<div id="blobbyparam">Left elbow</div>
-	<div id="sliderlelbo">
-	</div>
-	<div id="blobbyparam">Right Side</div>
-	<div id="sliderrsid">
-	</div>
-	<div id="blobbyparam">Right Shoulder</div>
-	<div id="sliderrshou">
-	</div>
-	<div id="blobbyparam">Right Arm Twist</div>
-	<div id="sliderratwis">
-	</div>
-	<div id="blobbyparam">Right elbow</div>
-	<div id="sliderrelbo">
-	</div>
-	<div id="blobbyparam">Left ankle</div>
-	<div id="sliderlankl">
-	</div>
-	<div id="blobbyparam">Right ankle</div>
-	<div id="sliderrankl">
-	</div>
-	<div id="blobbyparam">Left knee</div>
-	<div id="sliderlknee">
-	</div>
-	<div id="blobbyparam">Right knee</div>
-	<div id="sliderrknee">
-	</div>
-	</div>
-	<script>
-
-				  
-var container;
-
-
-var camera, scene, renderer;
-
-var geometry, group;
-
-var mouseX = 0, mouseY = 0;
-var sphere;
-var torso;
-var leftleg, rightleg;
-var body, shoulder, head;
-var leftarm, rightarm;
-var lthigh, lcalf, lfoot;
-var rthigh, rcalf, rfoot;
-var luparm, llowarm, lhand;
-var ruparm, rlowarm, rhand;
-var windowHalfX = window.innerWidth / 2;
-var windowHalfY = window.innerHeight / 2;
-var exten = 0;
-var btwis = 0;
-var rot   = 0;
-var neck  = 0;
-var nod   = 0;
-var lsid  = 0;
-var lshou = 0;
-var latwis = 0;
-var lelbo = 0;
-var rsid  = 0;
-var rshou = 0;
-var ratwis = 0;
-var relbo = 0;
-var lankl = 0;
-var rankl = 0;
-var lknee = 0;
-var rknee = 0;
-
-$('#dialog').dialog({ position:  [ 20, 20 ], height: 720  });
-
-$( "#sliderext" ).slider({ title : "Extension", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-						   slide : function(e, ui) {
-							   $(document).ready(function() {
-								   exten = $("#sliderext").slider( "value" );
-								   render(); }) } });
-
-
-$( "#slidertwist" ).slider({ title : "Twist ", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 btwis = $("#slidertwist").slider( "value" );
-									 render(); }) } });
-
-$( "#sliderrot" ).slider({ title : "Rotation", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-						   slide: function(e, ui) {
-							   $(document).ready(function() {
-								   rot = $("#sliderrot").slider( "value" );
-								   render(); }) } });
-
-$( "#slidernod" ).slider({ title : "Nod", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-						   slide: function(e, ui) {
-							   $(document).ready(function() {
-								   nod = $("#slidernod").slider( "value" );
-								   render(); }) } });
-
-$( "#sliderneck" ).slider({ title : "Neck rotation", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							slide: function(e, ui) {
-								$(document).ready(function() {
-									neck = $("#sliderneck").slider( "value" );
-									render(); }) } });
-
-$( "#sliderlsid" ).slider({ title : "Left side", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 lsid = $("#sliderlsid").slider( "value" );
-									 render(); }) } });
-
-$( "#sliderlshou" ).slider({ title : "Left shoulder", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 lshou = $("#sliderlshou").slider( "value" );
-									 render(); }) } });
-
-$( "#sliderlatwis" ).slider({ title : "Left arm twist", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 latwis = $("#sliderlatwis").slider( "value" );
-									 render(); }) } });
-
-$( "#sliderlelbo" ).slider({ title : "Left elbow", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 lelbo = $("#sliderlelbo").slider( "value" );
-									 render(); }) } });
-
-$( "#sliderlknee" ).slider({ title : "Left kneee", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 lknee = $("#sliderlknee").slider( "value" );
-									 render(); }) } });
-
-$( "#sliderlankl" ).slider({ title : "Left ankle", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 lankl = $("#sliderlankl").slider( "value" );
-									 render(); }) } });
-
-$( "#sliderrsid" ).slider({ title : "Right side", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 rsid = $("#sliderrsid").slider( "value" );
-									 render(); }) } });
-
-$( "#sliderrshou" ).slider({ title : "Right shoulder", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 rshou = $("#sliderrshou").slider( "value" );
-									 render(); }) } });
-
-$( "#sliderratwis" ).slider({ title : "Right arm twist", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 ratwis = $("#sliderratwis").slider( "value" );
-									 render(); }) } });
-
-$( "#sliderrelbo" ).slider({ title : "Right elbow", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 relbo = $("#sliderrelbo").slider( "value" );
-									 render(); }) } });
-
-$( "#sliderrknee" ).slider({ title : "Left kneee", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 rknee = $("#sliderrknee").slider( "value" );
-									 render(); }) } });
-
-$( "#sliderrankl" ).slider({ title : "Right ankle", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 rankl = $("#sliderrankl").slider( "value" );
-									 render(); }) } });
-
-//	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-
-
-function render() {
-
-	var time = Date.now() * 0.001;
-
-	body.rotation.x = exten;
-	body.rotation.y = btwis;
-	body.rotation.z = rot;
-
-	head.rotation.x = nod;
-	head.rotation.z = neck;
-
-	leftarm.eulerOrder = 'YZX';
-	leftarm.rotation.y = lsid;
-	leftarm.rotation.x = lshou;
-	leftarm.rotation.z = latwis;
-	
-	rightarm.eulerOrder = 'YZX';
-	rightarm.rotation.y = rsid;
-	rightarm.rotation.x = rshou;
-	rightarm.rotation.z = ratwis;
-	
-
-	llowarm.rotation.x = lelbo
-	rlowarm.rotation.x = relbo
-
-	lcalf.rotation.x = lknee
-	rcalf.rotation.x = rknee
-
-	lfoot.rotation.x = lankl
-	rfoot.rotation.x = rankl
-
-	camera.position.x += ( mouseX - camera.position.x ) * .0005;
-	camera.position.y += ( - mouseY - camera.position.y ) * .0005;
-
-	camera.lookAt( scene.position );
-
-
-	renderer.render( scene, camera );
-
-}
-
-function init() {
-
-
-	container = document.createElement( 'div' );
-	document.body.appendChild( container );
-
-	scene = new THREE.Scene();
-	scene.fog = new THREE.Fog( 0xffffff, 1, 100 );
-
-	camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 100 );
-	camera.position.y = -5;
-	camera.up.z = 1.0
-	camera.up.y = 0.0
-	camera.up.x = 0.0
-	camera.lookAt( { x: 0.0, y : 0.0, z: 0.0 })
-	scene.add( camera );
-
-
-	var geometry = new THREE.SphereGeometry( 1.0, 32, 32 );
-	var material = new THREE.MeshNormalMaterial();
-
-	torso = new THREE.Object3D();
-	leftleg  = new THREE.Object3D();
-	rightleg  = new THREE.Object3D();
-	body  = new THREE.Object3D();
-	shoulder = new THREE.Object3D();
-	head =  new THREE.Object3D();
-	leftarm = new THREE.Object3D();
-	rightarm = new THREE.Object3D();
-
-	lfoot = new THREE.Object3D();
-	lcalf = new THREE.Object3D();
-	lthigh = new THREE.Object3D();
-
-	rfoot = new THREE.Object3D();
-	rcalf = new THREE.Object3D();
-	rthigh = new THREE.Object3D();
-
-	luparm = new THREE.Object3D();
-	ruparm = new THREE.Object3D();
-
-	llowarm = new THREE.Object3D();
-	lhand = new THREE.Object3D();
-	rlowarm = new THREE.Object3D();
-	rhand = new THREE.Object3D();
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.z = 0.08;
-	sphere.scale.x = 0.275;
-	sphere.scale.y = 0.152;
-	sphere.scale.z = 0.153;
-	torso.add( sphere );
-	leftleg.position.x = -0.178;
-	torso.add(leftleg);
-	//body.rotation.x = exten
-	//body.rotation.y = btwis
-	//body.rotation.z = rot
-	torso.add(body);
-	rightleg.position.x = 0.178;
-	torso.add(rightleg);
-
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.z = 0.62
-	sphere.scale.x = 0.306;
-	sphere.scale.y = 0.21;
-	sphere.scale.z = 0.5;
-	body.add(sphere)
-
-	shoulder.position.z = 1;
-	//shoulder.rotation.x = exten
-	//shoulder.rotation.y = btwis
-	//shoulder.rotation.z = rot
-	body.add(shoulder);
-
-	// head --
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.scale.x = 0.45;
-	sphere.scale.y = 0.153;
-	sphere.scale.z = 0.12;
-	shoulder.add(sphere);
-
-	head.position.z = 0.153
-	shoulder.add(head);
-
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.x = 0;
-	sphere.position.y = 0;
-	sphere.position.z = 0.4;
-	sphere.scale.x = 0.2;
-	sphere.scale.y = 0.23;
-	sphere.scale.z = 0.3;
-	head.add(sphere);
-
-	// nose
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.x = 0;
-	sphere.position.y = -0.255;
-	sphere.position.z = 0.33;
-	sphere.scale.x = 0.035;
-	sphere.scale.y = 0.075;
-	sphere.scale.z = 0.035;
-	head.add(sphere);
-
-	// eyes
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.x = -0.07;
-	sphere.position.y = -0.233;
-	sphere.position.z = 0.43;
-	sphere.scale.x = 0.065;
-	sphere.scale.y = 0.035;
-	sphere.scale.z = 0.035;
-	head.add(sphere);
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.x = 0.07;
-	sphere.position.y = -0.233;
-	sphere.position.z = 0.43;
-	sphere.scale.x = 0.065;
-	sphere.scale.y = 0.035;
-	sphere.scale.z = 0.035;
-	head.add(sphere);
-
-	// neck
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.x = 0;
-	sphere.position.y = 0;
-	sphere.position.z = 0.07;
-	sphere.scale.x = 0.065;
-	sphere.scale.y = 0.065;
-	sphere.scale.z = 0.14;
-	head.add(sphere);
-
-	// mouth
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.x = 0;
-	sphere.position.y = -0.162;
-	sphere.position.z = 0.239;
-	sphere.scale.x = 0.0677;
-	sphere.scale.y = 0.04;
-	sphere.scale.z = 0.0506;
-	head.add(sphere);
-
-	leftarm.position.x = -0.45
-	//leftarm.rot.y = lsid
-	//leftarm.rot.x = lshou
-	//leftarm.rot.z = latwis
-	shoulder.add(leftarm);
-
-	rightarm.position.x = 0.45
-	//leftarm.rot.y = rsid
-	//leftarm.rot.x = rshou
-	//leftarm.rot.z = ratwis
-	shoulder.add(rightarm);
-
-	leftarm.add(luparm);
-	llowarm.position.z = -0.55;
-	//llowarm.rotation.x = lelbo
-	luparm.add(llowarm);
-	lhand.position.z = -0.5
-	llowarm.add(lhand);
-
-	rightarm.add(ruparm);
-	rlowarm.position.z = -0.55;
-	//rlowarm.rotation.x = relbo
-	ruparm.add(rlowarm);
-	rhand.position.z = -0.5;
-	rlowarm.add(rhand);
-
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.z = -0.275
-	sphere.scale.x = 0.09;
-	sphere.scale.y = 0.09;
-	sphere.scale.z = 0.275;
-	luparm.add(sphere);
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.z = -0.275
-	sphere.scale.x = 0.09;
-	sphere.scale.y = 0.09;
-	sphere.scale.z = 0.275;
-	ruparm.add(sphere);
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.scale.x = 0.08
-	sphere.scale.y = 0.08
-	sphere.scale.z = 0.25
-	sphere.position.z = -0.25
-	llowarm.add(sphere);
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.scale.x = 0.08
-	sphere.scale.y = 0.08
-	sphere.scale.z = 0.25
-	sphere.position.z = -0.25
-	rlowarm.add(sphere);
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.scale.x = 0.052;
-	sphere.scale.y = 0.091;
-	sphere.scale.z = 0.155;
-	sphere.position.z = -0.116;
-	lhand.add(sphere);
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.scale.x = 0.052;
-	sphere.scale.y = 0.091;
-	sphere.scale.z = 0.155;
-	sphere.position.z = -0.116;
-	rhand.add(sphere);
-
-	//leftleg.rotation.z = lhip;
-	//leftleg.roataton.y = lout;
-	//leftleg.rotation.z = -lhip;
-	//leftlet.rotation.z = ltwis;
-
-	leftleg.add(lthigh);
-	lcalf.position.z = -0.85;
-	//lcalf.rot.x = lknee
-	lthigh.add(lcalf);
-	lfoot.position.z = -0.84;
-	//lfoot.rot.x = lankl
-	lcalf.add(lfoot);
-
-
-	rightleg.add(rthigh);
-	rcalf.position.z = -0.85;
-	//lcalf.rot.x = lknee
-	rthigh.add(rcalf);
-	rfoot.position.z = -0.84;
-	//lfoot.rot.x = lankl
-	rcalf.add(rfoot);
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.z = -0.425;
-	sphere.scale.x =0.141;
-	sphere.scale.y=0.141;
-	sphere.scale.z=0.425
-	lthigh.add(sphere);
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.z = -0.425;
-	sphere.scale.x =0.141;
-	sphere.scale.y=0.141;
-	sphere.scale.z=0.425
-	rthigh.add(sphere);
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.scale.x=0.05;
-	sphere.scale.y=0.05;
-	sphere.scale.z=0.05;
-	lcalf.add(sphere);
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.scale.x=0.05;
-	sphere.scale.y=0.05;
-	sphere.scale.z=0.05;
-	rcalf.add(sphere);
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.z = -0.425;
-	sphere.scale.x=0.1;
-	sphere.scale.y=0.1;
-	sphere.scale.z=0.425;
-	lcalf.add(sphere);
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.z = -0.425;
-	sphere.scale.x=0.1;
-	sphere.scale.y=0.1;
-	sphere.scale.z=0.425;
-	rcalf.add(sphere);
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.scale.x=0.05;
-	sphere.scale.y=0.04;
-	sphere.scale.z=0.04;
-	lfoot.add(sphere);
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.scale.x=0.05;
-	sphere.scale.y=0.04;
-	sphere.scale.z=0.04;
-	rfoot.add(sphere);
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.y = 0.05;
-	sphere.position.z = -0.05;
-	sphere.scale.x=0.04;
-	sphere.scale.y=0.04;
-	sphere.scale.z=0.04;
-	lfoot.add(sphere);
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.y = 0.05;
-	sphere.position.z = -0.05;
-	sphere.scale.x=0.04;
-	sphere.scale.y=0.04;
-	sphere.scale.z=0.04;
-	rfoot.add(sphere);
-
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.y = -0.015;
-	sphere.position.z = -0.05;
-	sphere.rotation.x = -10;
-	sphere.scale.x=0.08;
-	sphere.scale.y=0.19;
-	sphere.scale.z=0.05;
-	lfoot.add(sphere);
-	sphere = new THREE.Mesh( geometry, material );
-	sphere.position.y = -0.015;
-	sphere.position.z = -0.05;
-	sphere.rotation.x = -10;
-	sphere.scale.x=0.08;
-	sphere.scale.y=0.19;
-	sphere.scale.z=0.05;
-	rfoot.add(sphere);
-
-	scene.add( torso );
-
-	renderer = new THREE.WebGLRenderer();
-	renderer.setSize( window.innerWidth, window.innerHeight );
-	renderer.sortObjects = false;
-
-	container.appendChild( renderer.domElement );
-
-
-}
-
-init();
-//render();
-
-
-
-
-				//function animate() {
-						//
-						//		requestAnimationFrame( animate );
-						//
-						//		render();
-						//
-
-						//}
-
-
-				</script>
-
-		</body>
+  </body>
 </html>

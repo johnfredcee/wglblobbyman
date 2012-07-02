@@ -95,7 +95,7 @@ BlobbyMan.render = function() {
 
 BlobbyMan.initui = function() {
 
-	$('#dialog').dialog({ position:  [ 20, 20 ], height: 720  });
+	$('#dialog').dialog({ position:  [ 400, 20 ], height: 420  });
 
 	$("#sliderext").slider({ title : "Extension", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
 							 slide : function (e, ui) {
@@ -127,6 +127,8 @@ BlobbyMan.initui = function() {
 								  $(document).ready(function() {
 									  BlobbyMan.neck = $("#sliderneck").slider( "value" );
 									  BlobbyMan.render(); }); } });
+
+	$('#ldialog').dialog({ position:  [ 20, 20 ], height: 420  });
 
 	$( "#sliderlsid" ).slider({ title : "Left side", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
 								slide: function(e, ui) {
@@ -163,6 +165,8 @@ BlobbyMan.initui = function() {
 									 $(document).ready(function() {
 										 BlobbyMan.lankl = $("#sliderlankl").slider( "value" );
 										 BlobbyMan.render(); }); } });
+
+	$('#rdialog').dialog({ position:  [ 800, 20 ], height: 420  });
 
 	$( "#sliderrsid" ).slider({ title : "Right side", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
 								slide: function(e, ui) {

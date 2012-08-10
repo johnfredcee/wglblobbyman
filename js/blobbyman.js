@@ -52,6 +52,8 @@ BlobbyMan.rankl = 0;
 BlobbyMan.lknee = 0;
 BlobbyMan.rknee = 0;
 BlobbyMan.animtime = 0;
+BlobbyMan.usedParams = new Object();
+BlobbyMan.samples = new Object();
 
 BlobbyMan.paramNames = [
 	'exten' ,
@@ -74,6 +76,37 @@ BlobbyMan.paramNames = [
 	'animtime' 
 ];
 
+BlobbyMan.encodeNumber = function(num)
+{
+	var validchars = '01234567890ABCDEFGHJIKLMNOPQRSVUWXYZabcdefghjiklmnopqrsvuwxyz';
+	var radix = validchars.length;
+	var workingnum = num|0;
+	var result = '';
+	
+	while(workingnum !=  0) 
+	{
+		result = validchars[workingnum % radix] + result; 
+		workingnum = (workingnum / radix)|0;
+	}
+};
+
+BlobbyMan.decodeNumber = function(numstr)
+{
+	var validchars = '01234567890ABCDEFGHJIKLMNOPQRSVUWXYZabcdefghjiklmnopqrsvuwxyz';
+	var radix = validchars.length;
+	var workingnum = 0;
+	var result = 0;
+	
+	while(numstr.length != 0)
+	{
+		workingnum = workingnum * radix;
+		workingnum = workingnum + validchars.indexOf(numstr[0]);
+		numstr = numstr.substring(1, thingstring.length);
+	}
+	return workingnum;
+};
+
+
 BlobbyMan.setParams = function(animparams)
 {
 	for (p in animparams) 
@@ -90,6 +123,49 @@ BlobbyMan.getParams = function()
 		animparams[p] = BlobbyMan[p];
 	}
 	return animparams;
+};
+
+
+BlobbyMan.updateParams = function()
+{
+	var framtime = BlobbyMan.animtime;
+	var updatedparams = new Object();
+	var animtime = BlobbyMan.animtime | 0;
+
+	// first pass, ensure anything left out of used set goes in
+	for(p in BlobbyMan.paramNames) 
+	{
+		if ((p != 'animtime') && ( BlobbyMan[p] != 0.0)) 
+		{ 
+			if (BlobbyMan.usedParams[p] != undefined) 
+			{
+				BlobbyMan.usedParams[p] = true;
+			}
+		}
+	}
+	BlobbyMan.samples[animtime] = new Object();
+	for(p in BlobbyMan.usedParams)
+	{
+		BlobbyMan.samples[animtime][p] = BlobbyMan[p];
+	}
+	return;
+};
+
+BlobbyMan.calcParamsUrl = function()
+{
+	var url = '';
+	for(animtime in BlobbyMan.samples)
+	{
+		url = url + encodeNumber(animtime);
+		url = url + '$';
+		for(p in animtime) 
+		{
+
+		}
+		url = url + '_';
+	};
+	url = substring(0, url.length-1);
+	return url;
 };
 
 BlobbyMan.render = function() {
@@ -247,7 +323,12 @@ BlobbyMan.initui = function() {
 
 	$( '#keybutton' ).click(function(e) {
 								e.preventDefault();
-								alert(true);
+								BlobbyMan.updateParams();
+							});
+
+	$( '#urlbutton' ).click(function(e) {
+								e.preventDefault();
+								BlobbyMan.makeParamsUrl();
 							});
 
 };

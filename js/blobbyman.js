@@ -51,7 +51,7 @@ BlobbyMan.lankl = 0;
 BlobbyMan.rankl = 0;
 BlobbyMan.lknee = 0;
 BlobbyMan.rknee = 0;
-
+BlobbyMan.animtime = 0;
 
 BlobbyMan.render = function() {
 
@@ -95,8 +95,6 @@ BlobbyMan.render = function() {
 
 BlobbyMan.initui = function() {
 
-	$('#dialog').dialog({ position:  [ 400, 20 ], height: 420  });
-
 	$("#sliderext").slider({ title : "Extension", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
 							 slide : function (e, ui) {
 								 $(document).ready(function () {
@@ -128,7 +126,6 @@ BlobbyMan.initui = function() {
 									  BlobbyMan.neck = $("#sliderneck").slider( "value" );
 									  BlobbyMan.render(); }); } });
 
-	$('#ldialog').dialog({ position:  [ 20, 20 ], height: 420  });
 
 	$( "#sliderlsid" ).slider({ title : "Left side", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
 								slide: function(e, ui) {
@@ -166,7 +163,6 @@ BlobbyMan.initui = function() {
 										 BlobbyMan.lankl = $("#sliderlankl").slider( "value" );
 										 BlobbyMan.render(); }); } });
 
-	$('#rdialog').dialog({ position:  [ 800, 20 ], height: 420  });
 
 	$( "#sliderrsid" ).slider({ title : "Right side", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
 								slide: function(e, ui) {
@@ -203,6 +199,13 @@ BlobbyMan.initui = function() {
 									 $(document).ready(function() {
 										 BlobbyMan.rankl = $("#sliderrankl").slider( "value" );
 										 BlobbyMan.render(); }); } });
+
+	$( "#slidertime" ).slider({ title : "Time", max: 60.0, min: 0.0, step : 1.0, value: 0.0,
+								 slide: function(e, ui) {
+									 $(document).ready(function() {
+										 BlobbyMan.animtime = $("#slidertime").slider( "value" );
+										 BlobbyMan.render(); }); } });
+
 };
 
 BlobbyMan.init = function() {
@@ -210,6 +213,7 @@ BlobbyMan.init = function() {
 	var geometry, material, sphere, container;
 	
 	container = document.createElement( 'div' );
+	container.id = "renderarea";
 	document.body.appendChild( container );
 
 	this.initui();
@@ -535,3 +539,4 @@ BlobbyMan.init = function() {
 $(document).ready(function() { BlobbyMan.init(); } );
 
 //	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+

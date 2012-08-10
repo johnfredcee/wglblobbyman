@@ -2,6 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-GB">
   <head>
 	<title>three.js webgl - geometry hierarchy</title>
+	<link rel="stylesheet" href="css/blobbyman.css" type="text/css" media="all" />
 	<link rel="stylesheet" href="css/south-street/jquery-ui-1.8.20.custom.css" type="text/css" media="all" />
   </head>
   <body>
@@ -10,7 +11,12 @@
 	<script src="js/jquery-ui-1.8.20.custom.min.js"></script>
 	<script src="js/Three.js"></script>
 	<script src="js/blobbyman.js"></script>
-	<div id="dialog" title="Blobby man">
+	<div id="timeline" title="Time Line">
+	  <div id="timestitle">Animation Time</div>  
+	  <div id="slidertime">
+	  </div>
+	</div>
+	<div id="parameters" title="Blobby man">
 	  <div class="blobbyparam">Extension</div>
 	  <div id="sliderext">
 	  </div>
@@ -26,8 +32,6 @@
 	  <div class="blobbyparam">Nod</div>
 	  <div id="slidernod">
 	  </div>
-	</div>
-	<div id="ldialog" title="Left Blobby Man">
 	  <div >Left Side</div>
 	  <div id="sliderlsid">
 	  </div>
@@ -46,8 +50,6 @@
 	  <div class="blobbyparam">Left knee</div>
 	  <div id="sliderlknee">
 	  </div>
-	</div>
-	<div id="rdialog" title="Right Blobby Man">
 	  <div class="blobbyparam">Right Side</div>
 	  <div id="sliderrsid">
 	  </div>

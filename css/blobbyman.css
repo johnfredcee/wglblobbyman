@@ -9,3 +9,9 @@
 	width:250px;
 }
 
+#timeline {
+	clear:both;
+	padding: 5px 10px;
+	background: #99c;
+}
+

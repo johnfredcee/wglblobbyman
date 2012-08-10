@@ -53,6 +53,45 @@ BlobbyMan.lknee = 0;
 BlobbyMan.rknee = 0;
 BlobbyMan.animtime = 0;
 
+BlobbyMan.paramNames = [
+	'exten' ,
+	'btwis' ,
+	'rot'   ,
+	'neck'  ,
+	'nod'   ,
+	'lsid'  ,
+	'lshou' ,
+	'latwis' ,
+	'lelbo' ,
+	'rsid'  ,
+	'rshou' ,
+	'ratwis' ,
+	'relbo' ,
+	'lankl' ,
+	'rankl' ,
+	'lknee' ,
+	'rknee' ,
+	'animtime' 
+];
+
+BlobbyMan.setParams = function(animparams)
+{
+	for (p in animparams) 
+	{
+		BlobbyMan[p] = animparams[p];	
+	};
+};
+
+BlobbyMan.getParams = function()
+{
+	var animparams = new Object();
+	for(p in BlobbyMan.paramNames)
+	{
+		animparams[p] = BlobbyMan[p];
+	}
+	return animparams;
+};
+
 BlobbyMan.render = function() {
 
 	var time = Date.now() * 0.001;
@@ -205,6 +244,11 @@ BlobbyMan.initui = function() {
 									 $(document).ready(function() {
 										 BlobbyMan.animtime = $("#slidertime").slider( "value" );
 										 BlobbyMan.render(); }); } });
+
+	$( '#keybutton' ).click(function(e) {
+								e.preventDefault();
+								alert(true);
+							});
 
 };
 
@@ -539,4 +583,5 @@ BlobbyMan.init = function() {
 $(document).ready(function() { BlobbyMan.init(); } );
 
 //	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
 

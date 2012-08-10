@@ -1,0 +1,11 @@
+
+#renderarea {     
+    float:left;
+	width: 500px;
+}
+
+#parameters {
+	float:right;
+	width:250px;
+}
+

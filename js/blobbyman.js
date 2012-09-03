@@ -1,11 +1,9 @@
-
 /*global window:false, $:false, THREE:false */
-/*jslint white:false, browser:true  */
-'use strict';		
+/*jslint white:false, browser:true	*/
 
 var BlobbyMan = BlobbyMan || {};
 
-BlobbyMan.camera = undefined; 
+BlobbyMan.camera = undefined;
 BlobbyMan.scene = undefined;
 BlobbyMan.renderer = undefined;
 BlobbyMan.group = undefined;
@@ -26,7 +24,7 @@ BlobbyMan.lfoot = undefined;
 BlobbyMan.rthigh = undefined;
 BlobbyMan.rcalf = undefined;
 BlobbyMan.rfoot = undefined;
-BlobbyMan.luparm = undefined; 
+BlobbyMan.luparm = undefined;
 BlobbyMan.llowarm = undefined;
 BlobbyMan.lhand = undefined;
 BlobbyMan.ruparm = undefined;
@@ -36,14 +34,14 @@ BlobbyMan.windowHalfX = window.innerWidth / 2;
 BlobbyMan.windowHalfY = window.innerHeight / 2;
 BlobbyMan.exten = 0;
 BlobbyMan.btwis = 0;
-BlobbyMan.rot   = 0;
-BlobbyMan.neck  = 0;
-BlobbyMan.nod   = 0;
-BlobbyMan.lsid  = 0;
+BlobbyMan.rot	= 0;
+BlobbyMan.neck	= 0;
+BlobbyMan.nod	= 0;
+BlobbyMan.lsid	= 0;
 BlobbyMan.lshou = 0;
 BlobbyMan.latwis = 0;
 BlobbyMan.lelbo = 0;
-BlobbyMan.rsid  = 0;
+BlobbyMan.rsid	= 0;
 BlobbyMan.rshou = 0;
 BlobbyMan.ratwis = 0;
 BlobbyMan.relbo = 0;
@@ -52,123 +50,244 @@ BlobbyMan.rankl = 0;
 BlobbyMan.lknee = 0;
 BlobbyMan.rknee = 0;
 BlobbyMan.animtime = 0;
-BlobbyMan.usedParams = new Object();
-BlobbyMan.samples = new Object();
+BlobbyMan.usedParams = {};
+BlobbyMan.samples = [];
+BlobbyMan.maxAnimTime = 60;
 
 BlobbyMan.paramNames = [
-	'exten' ,
-	'btwis' ,
-	'rot'   ,
-	'neck'  ,
-	'nod'   ,
-	'lsid'  ,
-	'lshou' ,
-	'latwis' ,
-	'lelbo' ,
-	'rsid'  ,
-	'rshou' ,
-	'ratwis' ,
-	'relbo' ,
-	'lankl' ,
-	'rankl' ,
-	'lknee' ,
-	'rknee' ,
-	'animtime' 
+	'exten',
+	'btwis',
+	'rot',
+	'neck',
+	'nod',
+	'lsid',
+	'lshou',
+	'latwis',
+	'lelbo',
+	'rsid',
+	'rshou',
+	'ratwis',
+	'relbo',
+	'lankl',
+	'rankl',
+	'lknee',
+	'rknee',
+	'animtime'
 ];
 
-BlobbyMan.encodeNumber = function(num)
+/**
+ * Encode a number into the URL
+ */
+BlobbyMan.encodeNumber = function (num)
 {
-	var validchars = '01234567890ABCDEFGHJIKLMNOPQRSVUWXYZabcdefghjiklmnopqrsvuwxyz';
+	var validchars = '01234567890ABCDEFGHJIKLMNOPQRSVUWXYZabcdefghjiklmnopqrsvuwxyz-_';
 	var radix = validchars.length;
 	var workingnum = num|0;
 	var result = '';
-	
-	while(workingnum !=  0) 
+
+	while (workingnum !== 0)
 	{
-		result = validchars[workingnum % radix] + result; 
+		result = validchars[workingnum % radix] + result;
 		workingnum = (workingnum / radix)|0;
 	}
+	return result;
 };
 
-BlobbyMan.decodeNumber = function(numstr)
+/**
+ * Decode a number from the URL
+ */
+BlobbyMan.decodeNumber = function (numstr)
 {
-	var validchars = '01234567890ABCDEFGHJIKLMNOPQRSVUWXYZabcdefghjiklmnopqrsvuwxyz';
+	var validchars = '01234567890ABCDEFGHJIKLMNOPQRSVUWXYZabcdefghjiklmnopqrsvuwxyz-_';
 	var radix = validchars.length;
 	var workingnum = 0;
 	var result = 0;
-	
-	while(numstr.length != 0)
+
+	while (numstr.length !== 0)
 	{
 		workingnum = workingnum * radix;
 		workingnum = workingnum + validchars.indexOf(numstr[0]);
-		numstr = numstr.substring(1, thingstring.length);
+		numstr = numstr.substring(1, numstr.length);
 	}
 	return workingnum;
 };
 
-
-BlobbyMan.setParams = function(animparams)
+/**
+ * Accessors to array of interpolated parameters
+ */
+BlobbyMan.setParams = function (animparams)
 {
-	for (p in animparams) 
+	var p;
+	for (p in animparams)
 	{
-		BlobbyMan[p] = animparams[p];	
-	};
+		BlobbyMan[p] = animparams[p];
+	}
 };
 
-BlobbyMan.getParams = function()
+BlobbyMan.getParams = function ()
 {
-	var animparams = new Object();
-	for(p in BlobbyMan.paramNames)
+	var p;
+	var animparams = {};
+	for (p in BlobbyMan.paramNames)
 	{
 		animparams[p] = BlobbyMan[p];
 	}
 	return animparams;
 };
 
-
-BlobbyMan.updateParams = function()
+/**
+ * Test to see if there is a given frame in the samples
+ * array at a given time.
+ */
+BlobbyMan.isKeyFrame = function (sampletime)
 {
-	var framtime = BlobbyMan.animtime;
-	var updatedparams = new Object();
-	var animtime = BlobbyMan.animtime | 0;
+	return BlobbyMan.samples[sampletime|0] !== undefined;
+};
+
+/**
+ * Ensure samples array gets updated with currently used
+ * parameters.
+ */
+BlobbyMan.setKeyFrame = function ()
+{
+	var keytime = BlobbyMan.animtime | 0;
+	var keyval  = "key@"+keytime.toString();
+	var keyid   = "keybutton"+BlobbyMan.samples.length.toString();
 
 	// first pass, ensure anything left out of used set goes in
-	for(p in BlobbyMan.paramNames) 
+	for (var p in BlobbyMan.paramNames)
 	{
-		if ((p != 'animtime') && ( BlobbyMan[p] != 0.0)) 
-		{ 
-			if (BlobbyMan.usedParams[p] != undefined) 
+		if ((p != 'animtime') && (BlobbyMan[p] !== 0.0))
+		{
+			if (BlobbyMan.usedParams[p] !== undefined)
 			{
 				BlobbyMan.usedParams[p] = true;
 			}
 		}
 	}
-	BlobbyMan.samples[animtime] = new Object();
-	for(p in BlobbyMan.usedParams)
+	BlobbyMan.samples[keytime] = {};
+	for (p in BlobbyMan.usedParams)
 	{
-		BlobbyMan.samples[animtime][p] = BlobbyMan[p];
+		BlobbyMan.samples[keytime][p] = BlobbyMan[p];
 	}
+	BlobbyMan.samples.sort();
+	//$("#urlbutton").last().after("<input type=\"button\" id=\""+keyid+"\" value=\"" + keyvalue + "\" />");
+	$("#urlbutton").last().after("<input type=\"button\" value=\"" + keyval + "\" id=\"testbutton\"\\>");
 	return;
 };
 
-BlobbyMan.calcParamsUrl = function()
+BlobbyMan.createKeyIndex = function ()
 {
-	var url = '';
-	for(animtime in BlobbyMan.samples)
+	index = [];
+	for(var keyt in BlobbyMan.samples)
 	{
-		url = url + encodeNumber(animtime);
-		url = url + '$';
-		for(p in animtime) 
-		{
+		index.push(keyt);
+	}
+	index.sort();
+	return index;
+};
 
+/**
+ * Calculate url that describes parameters
+ */
+BlobbyMan.calcParamsUrl = function ()
+{
+	var url = '?';
+	var animtime = undefined;
+
+	var index = BlobbyMan.createKeyIndex();
+	for (var p in BlobbyMan.usedParams) {
+		url = url + p + '=';
+		for (var i = 0; i <  index.length; i++) {
+			animtime = index[i];
+			url = url + encodeNumber(animtime);
+			url = url + "~";
+			url = url + encodeNumber(BlobbyMan.samples[animtime][p]);
+			url = url + "~";
 		}
-		url = url + '_';
-	};
-	url = substring(0, url.length-1);
+ 		url = substring(0, url.length - 1);
+		url = url + "&";
+	}
+ 	url = substring(0, url.length - 1);
 	return url;
 };
 
-BlobbyMan.render = function() {
+/**
+ * Calculate parameter for given t
+ */
+BlobbyMan.interpolateParam = function (p, animtime)
+{
+
+	/* index of next key */
+	var index;
+	/* times we interpolate between */
+	var t0;
+	var t1;
+	/* keys we interpolate between */
+	var key0;
+	var key1;
+	/* interpolant */
+	var alpha;
+	/* result */
+	var result;
+
+	var findNextKey = function (animtime)
+	{
+		var keyi = undefined;
+		var keyt;
+		for(var i = 0; i < index.length(); ++i) {
+			keyt = BlobbyMan.samples[index[i]];
+			if (keyt >= animtime)
+				keyi = i;
+			break;
+		}
+		return keyi;
+	};
+
+	// unused case.
+	if (BlobbyMan.usedParams[p] === undefined)
+	{
+		return BlobbyMan[p];
+	}
+	index = BlobbyMan.createKeyIndex();
+	// one key case
+	if (BlobbyMan.samples.length == 1)
+		return BlobbyMan.samples[index[0]][p];
+	var nextKey = findNextKey(animtime);
+	// extrapolating past last key case
+	if (nextKey === undefined) {
+		prevKey = index.length() - 1;
+		t1 = index[prevKey];
+		key1 = BlobbyMan.samples[t1][p];
+		t0 = index[prevKey-1];
+		key0 = BlobbyMan.samples[t0][p];
+		alpha = (t0 - t1) / (t0 - animtime);
+		result = key0 + (key1 - key0) * alpha;
+	}
+	if (nextKey >= 1) {
+		// inbetween case
+		t1 = index[nextKey];
+		key1 = BlobbyMan.samples[t1][p];
+		prevKey = nextKey-1;
+		t0 = index[prevKey];
+		key0 = BlobbyMan.samples[t0][p];
+		alpha = (t0 - t1) / (t0 - animtime);
+		result = key0 + (key1 - key0) * alpha;
+	}
+	else {
+		// extrapolating past first key case
+		prevKey = undefined;
+		t0 = index[nextKey];
+		key0 = BlobbyMan.samples[t0][p];
+		t1 = index[nextKey+1];
+		key1 = BlobbyMan.samples[t0][p];
+		alpha = (t0 - t1) / (t0 - animtime);
+		result = key0 + (key1 - key0) * alpha;
+	}
+	return result;
+};
+
+BlobbyMan.render = function () {
 
 	var time = Date.now() * 0.001;
 
@@ -183,12 +302,12 @@ BlobbyMan.render = function() {
 	this.leftarm.rotation.y = this.lsid;
 	this.leftarm.rotation.x = this.lshou;
 	this.leftarm.rotation.z = this.latwis;
-	
+
 	this.rightarm.eulerOrder = 'YZX';
 	this.rightarm.rotation.y = this.rsid;
 	this.rightarm.rotation.x = this.rshou;
 	this.rightarm.rotation.z = this.ratwis;
-	
+
 
 	this.llowarm.rotation.x = this.lelbo;
 	this.rlowarm.rotation.x = this.relbo;
@@ -199,144 +318,147 @@ BlobbyMan.render = function() {
 	this.lfoot.rotation.x = this.lankl;
 	this.rfoot.rotation.x = this.rankl;
 
-	this.camera.position.x += ( this.mouseX - this.camera.position.x ) * 0.0005;
-	this.camera.position.y += ( - this.mouseY - this.camera.position.y ) * 0.0005;
+	this.camera.position.x += (this.mouseX - this.camera.position.x) * 0.0005;
+	this.camera.position.y += (-this.mouseY - this.camera.position.y) * 0.0005;
 
-	this.camera.lookAt( this.scene.position );
+	this.camera.lookAt(this.scene.position);
 
-	this.renderer.render( this.scene, this.camera );
+	this.renderer.render(this.scene, this.camera);
 
 };
 
-BlobbyMan.initui = function() {
+BlobbyMan.initui = function () {
 
-	$("#sliderext").slider({ title : "Extension", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide : function (e, ui) {
-								 $(document).ready(function () {
-									 BlobbyMan.exten = $("#sliderext").slider( "value" );
-									 BlobbyMan.render(); }); } });
+	$("#sliderext").slider({title : "Extension", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
+							slide : function (e, ui) {
+								$(document).ready(function () {
+													  exten = $("#sliderext").slider( "value" );
+													  render(); }); } });
 
 
 	$("#slidertwist").slider({ title : "Twist ", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							   slide: function(e, ui) {
-								   $(document).ready(function() {
-									   BlobbyMan.btwis = $("#slidertwist").slider( "value" );
-									   BlobbyMan.render(); }); } });
+							   slide: function (e, ui) {
+								   $(document).ready(function () {
+														 BlobbyMan.btwis = $("#slidertwist").slider( "value" );
+														 BlobbyMan.render(); }); } });
 
 	$("#sliderrot").slider({ title : "Rotation", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 BlobbyMan.rot = $("#sliderrot").slider( "value" );
-									 BlobbyMan.render(); }); } });
+							 slide: function (e, ui) {
+								 $(document).ready(function () {
+													   BlobbyMan.rot = $("#sliderrot").slider( "value" );
+													   BlobbyMan.render(); }); } });
 
 	$("#slidernod").slider({ title : "Nod", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							 slide: function(e, ui) {
-								 $(document).ready(function() {
-									 BlobbyMan.nod = $("#slidernod").slider( "value" );
-									 BlobbyMan.render(); }); } });
+							 slide: function (e, ui) {
+								 $(document).ready(function () {
+													   BlobbyMan.nod = $("#slidernod").slider( "value" );
+													   BlobbyMan.render(); }); } });
 
 	$("#sliderneck").slider({ title : "Neck rotation", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-							  slide: function(e, ui) {
-								  $(document).ready(function() {
-									  BlobbyMan.neck = $("#sliderneck").slider( "value" );
-									  BlobbyMan.render(); }); } });
+							  slide: function (e, ui) {
+								  $(document).ready(function () {
+														BlobbyMan.neck = $("#sliderneck").slider( "value" );
+														BlobbyMan.render(); }); } });
 
 
 	$( "#sliderlsid" ).slider({ title : "Left side", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-								slide: function(e, ui) {
-									$(document).ready(function() {
-										BlobbyMan.lsid = $("#sliderlsid").slider( "value" );
-										BlobbyMan.render(); }); } });
+								slide: function (e, ui) {
+									$(document).ready(function () {
+														  BlobbyMan.lsid = $("#sliderlsid").slider( "value" );
+														  BlobbyMan.render(); }); } });
 
 	$( "#sliderlshou" ).slider({ title : "Left shoulder", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-								 slide: function(e, ui) {
-									 $(document).ready(function() {
-										 BlobbyMan.lshou = $("#sliderlshou").slider( "value" );
-										 BlobbyMan.render(); }); } });
+								 slide: function (e, ui) {
+									 $(document).ready(function () {
+														   BlobbyMan.lshou = $("#sliderlshou").slider( "value" );
+														   BlobbyMan.render(); }); } });
 
 	$( "#sliderlatwis" ).slider({ title : "Left arm twist", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-								  slide: function(e, ui) {
-									  $(document).ready(function() {
-										  BlobbyMan.latwis = $("#sliderlatwis").slider( "value" );
-										  BlobbyMan.render(); }); } });
+								  slide: function (e, ui) {
+									  $(document).ready(function () {
+															BlobbyMan.latwis = $("#sliderlatwis").slider( "value" );
+															BlobbyMan.render(); }); } });
 
 	$( "#sliderlelbo" ).slider({ title : "Left elbow", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-								 slide: function(e, ui) {
-									 $(document).ready(function() {
-										 BlobbyMan.lelbo = $("#sliderlelbo").slider( "value" );
-										 BlobbyMan.render(); }); } });
+								 slide: function (e, ui) {
+									 $(document).ready(function () {
+														   BlobbyMan.lelbo = $("#sliderlelbo").slider( "value" );
+														   BlobbyMan.render(); }); } });
 
 	$( "#sliderlknee" ).slider({ title : "Left kneee", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-								 slide: function(e, ui) {
-									 $(document).ready(function() {
-										 BlobbyMan.lknee = $("#sliderlknee").slider( "value" );
-										 BlobbyMan.render(); }); } });
+								 slide: function (e, ui) {
+									 $(document).ready(function () {
+														   BlobbyMan.lknee = $("#sliderlknee").slider( "value" );
+														   BlobbyMan.render(); }); } });
 
 	$( "#sliderlankl" ).slider({ title : "Left ankle", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-								 slide: function(e, ui) {
-									 $(document).ready(function() {
-										 BlobbyMan.lankl = $("#sliderlankl").slider( "value" );
-										 BlobbyMan.render(); }); } });
+								 slide: function (e, ui) {
+									 $(document).ready(function () {
+														   BlobbyMan.lankl = $("#sliderlankl").slider( "value" );
+														   BlobbyMan.render(); }); } });
 
 
 	$( "#sliderrsid" ).slider({ title : "Right side", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-								slide: function(e, ui) {
-									$(document).ready(function() {
-										BlobbyMan.rsid = $("#sliderrsid").slider( "value" );
-										BlobbyMan.render(); }); } });
+								slide: function (e, ui) {
+									$(document).ready(function () {
+														  BlobbyMan.rsid = $("#sliderrsid").slider( "value" );
+														  BlobbyMan.render(); }); } });
 
 	$( "#sliderrshou" ).slider({ title : "Right shoulder", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-								 slide: function(e, ui) {
-									 $(document).ready(function() {
-										 BlobbyMan.rshou = $("#sliderrshou").slider( "value" );
-										 BlobbyMan.render(); }); } });
+								 slide: function (e, ui) {
+									 $(document).ready(function () {
+														   BlobbyMan.rshou = $("#sliderrshou").slider( "value" );
+														   BlobbyMan.render(); }); } });
 
 	$( "#sliderratwis" ).slider({ title : "Right arm twist", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-								  slide: function(e, ui) {
-									  $(document).ready(function() {
-										  BlobbyMan.ratwis = $("#sliderratwis").slider( "value" );
-										  BlobbyMan.render(); }); } });
+								  slide: function (e, ui) {
+									  $(document).ready(function () {
+															BlobbyMan.ratwis = $("#sliderratwis").slider( "value" );
+															BlobbyMan.render(); }); } });
 
 	$( "#sliderrelbo" ).slider({ title : "Right elbow", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-								 slide: function(e, ui) {
-									 $(document).ready(function() {
-										 BlobbyMan.relbo = $("#sliderrelbo").slider( "value" );
-										 BlobbyMan.render(); }); } });
+								 slide: function (e, ui) {
+									 $(document).ready(function () {
+														   BlobbyMan.relbo = $("#sliderrelbo").slider( "value" );
+														   BlobbyMan.render(); }); } });
 
 	$( "#sliderrknee" ).slider({ title : "Left kneee", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-								 slide: function(e, ui) {
-									 $(document).ready(function() {
-										 BlobbyMan.rknee = $("#sliderrknee").slider( "value" );
-										 BlobbyMan.render(); }); } });
+								 slide: function (e, ui) {
+									 $(document).ready(function () {
+														   BlobbyMan.rknee = $("#sliderrknee").slider( "value" );
+														   BlobbyMan.render(); }); } });
 
 	$( "#sliderrankl" ).slider({ title : "Right ankle", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
-								 slide: function(e, ui) {
-									 $(document).ready(function() {
-										 BlobbyMan.rankl = $("#sliderrankl").slider( "value" );
-										 BlobbyMan.render(); }); } });
+								 slide: function (e, ui) {
+									 $(document).ready(function () {
+														   BlobbyMan.rankl = $("#sliderrankl").slider( "value" );
+														   BlobbyMan.render(); }); } });
 
-	$( "#slidertime" ).slider({ title : "Time", max: 60.0, min: 0.0, step : 1.0, value: 0.0,
-								 slide: function(e, ui) {
-									 $(document).ready(function() {
-										 BlobbyMan.animtime = $("#slidertime").slider( "value" );
-										 BlobbyMan.render(); }); } });
+	$( "#slidertime" ).slider({ title : "Time", max: BlobbyMan.maxAnimTime, min: 0, step : 1, value: 0,
+								slide: function (e, ui) {
+									$(document).ready(function () {
+														  BlobbyMan.animtime = $("#slidertime").slider( "value" );
+														  $("#timestitle").replaceWith("<div id=\"timestitle\">Animation Time "+BlobbyMan.animtime.toString() + "</div>");
+														  console.log("Animtime " + BlobbyMan.animtime.toString());
+														  BlobbyMan.render(); }); } });
 
-	$( '#keybutton' ).click(function(e) {
+	$( '#keybutton' ).click(function (e) {
 								e.preventDefault();
-								BlobbyMan.updateParams();
+								console.log("Set anim key @" + (BlobbyMan.animtime|0).toString());
+								BlobbyMan.setKeyFrame();
 							});
 
-	$( '#urlbutton' ).click(function(e) {
+	$( '#urlbutton' ).click(function (e) {
 								e.preventDefault();
 								BlobbyMan.makeParamsUrl();
 							});
 
 };
 
-BlobbyMan.init = function() {
+BlobbyMan.init = function () {
 
 	var geometry, material, sphere, container;
-	
+
 	container = document.createElement( 'div' );
 	container.id = "renderarea";
 	document.body.appendChild( container );
@@ -362,7 +484,7 @@ BlobbyMan.init = function() {
 	this.rightleg  = new THREE.Object3D();
 	this.body  = new THREE.Object3D();
 	this.shoulder = new THREE.Object3D();
-	this.head =  new THREE.Object3D();
+	this.head =	 new THREE.Object3D();
 	this.leftarm = new THREE.Object3D();
 	this.rightarm = new THREE.Object3D();
 
@@ -661,8 +783,6 @@ BlobbyMan.init = function() {
 	this.render();
 };
 
-$(document).ready(function() { BlobbyMan.init(); } );
+$(document).ready(function () { BlobbyMan.init(); } );
 
 //	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-
-

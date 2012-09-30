@@ -163,17 +163,17 @@ BlobbyMan.dumpKeys = function()
 	console.log("Keydump");
 	$.each( BlobbyMan.samples ,
 			function(k, v) {
-				console.log("Time "+k);
-				console.log("Object "+v);
-				if (v !== undefined) {					
+				if ((v !== undefined) && (k!==0)) {
+					console.log("Time "+k);
+					console.log("Object "+v);
 					$.each( v ,
 							function(i,w) {
 								console.log("Parameter "  + i);
 								console.log("Value " + w);
-							}); 
-				}});									  
+							});
+				}});
 
-	
+
 };
 
 
@@ -188,11 +188,11 @@ BlobbyMan.setKeyFrame = function ()
 	var keytime = BlobbyMan.animtime | 0;
 	console.log("KeyFrame@ "+keytime.toString());
 	// first pass, ensure anything left out of used set goes in
-	$.each(BlobbyMan.paramNames, 
+	$.each(BlobbyMan.paramNames,
 		   function(i,p) {
 			   // console.log("Parameter " + p);
 			   // console.log("Value " + BlobbyMan[p]);
-			   // console.log("Init Value " + BlobbyMan.samples[0][p]);			   
+			   // console.log("Init Value " + BlobbyMan.samples[0][p]);
 			   if ((p !== 'animtime') && (BlobbyMan[p] !== BlobbyMan.samples[0][p]))
 			   {
 				   if (BlobbyMan.usedParams[p] === undefined)
@@ -213,7 +213,7 @@ BlobbyMan.setKeyFrame = function ()
 	$.each(BlobbyMan.usedParams,
 		   function(i,p) {
 			   console.log("Setting Param "+i+" at time "+keytime);
-			   BlobbyMan.samples[keytime][i] = BlobbyMan[i];			   
+			   BlobbyMan.samples[keytime][i] = BlobbyMan[i];
 		   });
 	//BlobbyMan.samples.sort();
 	//$("#urlbutton").last().after("<input type=\"button\" id=\""+keyid+"\" value=\"" + keyvalue + "\" />");
@@ -363,11 +363,13 @@ BlobbyMan.playBack = function()
 	$("#keybutton").attr("disabled", "true");
 	$("#playbutton").attr("disabled", "true");
 	$("#urlbutton").attr("disabled", "true");
+
 	BlobbyMan.inPlayback = true;
 	var oldanimmtime = BlobbyMan.animTime;
 	var animStartTime = Date.now();
 	var animate     = function(animTime) {
 		var playTime = (animTime-animStartTime) / 1000.0;
+		$("slidertime").slider(playTime | 0);
 		console.log("Playback @"+playTime);
 	 	if ((playTime|0) >= (BlobbyMan.maxAnimTime|0)) {
 	 		BlobbyMan.inPlayback = false;
@@ -388,9 +390,9 @@ BlobbyMan.playBack = function()
 	 		BlobbyMan.render();
 			console.log("Next frame");
 	 		requestAnimationFrame(animate);
-		}			
+		}
 	};
-	// 		
+	//
 	// 		console.log("Playback finished");
 
 	// 	} else {
@@ -941,7 +943,7 @@ BlobbyMan.init = function () {
 		   function(i,p) {
 			   BlobbyMan.samples[0][p] = BlobbyMan[p];
 		   });
-	
+
 	BlobbyMan.makeKeyButton(0);
 
 	/** set up the renderer **/

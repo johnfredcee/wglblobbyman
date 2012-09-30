@@ -335,8 +335,8 @@ BlobbyMan.interpolateParam = function (p, animtime)
 	var nextKey = findNextKey(animtime|0,p);
 	console.log("Next key "+nextKey);
 	// extrapolating past last key case
-	console.log("Extrapolate");
 	if (nextKey === undefined) {
+		console.log("Extrapolate");
 		prevKey = keyIndex.length - 1;
 		t1 = keyIndex[prevKey];
 		key1 = BlobbyMan.samples[t1][p];
@@ -344,28 +344,30 @@ BlobbyMan.interpolateParam = function (p, animtime)
 		key0 = BlobbyMan.samples[t0][p];
 		alpha = (t0 - t1) / (t0 - animtime);
 		result = key0 + (key1 - key0) * alpha;
-	}
-	if (nextKey >= 1) {
-		// inbetween case
-		console.log("Interpolae");
-		t1 = keyIndex[nextKey];
-		key1 = BlobbyMan.samples[t1][p];
-		prevKey = nextKey-1;
-		t0 = keyIndex[prevKey];
-		key0 = BlobbyMan.samples[t0][p];
-		alpha = (t0 - t1) / (t0 - animtime);
-		result = key0 + (key1 - key0) * alpha;
-	}
-	else {
-		// extrapolating past first key case
-		console.log("Extrapolate2");
-		prevKey = undefined;
-		t0 = keyIndex[nextKey];
-		key0 = BlobbyMan.samples[t0][p];
-		t1 = keyIndex[nextKey+1];
-		key1 = BlobbyMan.samples[t0][p];
-		alpha = (t0 - t1) / (t0 - animtime);
-		result = key0 + (key1 - key0) * alpha;
+	} else {
+		if (nextKey >= 1) {
+			// inbetween case
+			console.log("Interpolae");
+			t1 = keyIndex[nextKey];
+			key1 = BlobbyMan.samples[t1][p];
+			prevKey = nextKey-1;
+			t0 = keyIndex[prevKey];
+			key0 = BlobbyMan.samples[t0][p];
+			alpha = (t0 - t1) / (t0 - animtime);
+			result = key0 + (key1 - key0) * alpha;
+		}
+		else {
+			// extrapolating past first key case
+			console.log("Extrapolate2");
+			prevKey = undefined;
+			t0 = keyIndex[nextKey];
+			key0 = BlobbyMan.samples[t0][p];
+			t1 = keyIndex[nextKey+1];
+			key1 = BlobbyMan.samples[t0][p];
+			alpha = (t0 - t1) / (t0 - animtime);
+			result = key0 + (key1 - key0) * alpha;
+		}
+		
 	}
 	return result;
 };
@@ -401,14 +403,14 @@ BlobbyMan.playBack = function()
 		} else {
 			console.log("Interpolate");
 			$.each(BlobbyMan.usedParams, 
-				  function(p,f) {
-					  if (f !== undefined) {
-						  console.log("Parameter "+ p);					  
-						  var v = BlobbyMan.interpolateParam(p, playTime);
-						  console.log("Value "+v);
-						  BlobbyMan[p] = v;					  						  
-					  }
-				  });
+				   function(p,f) {
+					   if (f !== undefined) {
+						   console.log("Parameter "+ p);					  
+						   var v = BlobbyMan.interpolateParam(p, playTime);
+						   console.log("Value "+v);
+						   BlobbyMan[p] = v;					  						  
+					   }
+				   });
 			console.log("Render");
 	 		BlobbyMan.render();
 			console.log("Next frame");

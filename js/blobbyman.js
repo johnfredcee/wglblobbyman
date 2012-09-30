@@ -233,11 +233,12 @@ BlobbyMan.setKeyFrame = function ()
 BlobbyMan.createKeyIndex = function ()
 {
 	var index = [];
-	for(var keyt in BlobbyMan.samples)
-	{
-		index.push(keyt);
-	}
-	index.sort();
+	$.each(BlobbyMan.samples, 
+		   function(keyt,kv) {
+			   if (kv !== undefined) {
+				   index.push(keyt);
+			   }
+		   });
 	return index;
 };
 
@@ -280,7 +281,7 @@ BlobbyMan.makeParamsUrl = function()
  */
 BlobbyMan.interpolateParam = function (p, animtime)
 {
-
+	console.log("Init intep");
 	/* index of next key */
 	var index;
 	/* times we interpolate between */
@@ -291,58 +292,77 @@ BlobbyMan.interpolateParam = function (p, animtime)
 	var key1;
 	/* interpolant */
 	var alpha;
+	/* index */
+	var keyIndex;
 	/* result */
 	var result;
 
-	var findNextKey = function (animtime)
+	console.log("Find next key");
+	var findNextKey = function (at,param)
 	{
+		console.log("Finding next key");
+		console.log("Keycount "+keyIndex.length);
 		var keyi = undefined;
-		var keyt;
-		for(var i = 0; i < index.length(); ++i) {
-			keyt = BlobbyMan.samples[index[i]];
-			if (keyt >= animtime)
+		for(var i = 0; i < keyIndex.length; ++i) {
+			console.log("Key @ "+i);
+			var ki = keyIndex[i];
+			console.log("KeyI @ "+ki);
+			if ((BlobbyMan.samples[ki][param] !== undefined) && (at < ki)) {
 				keyi = i;
-			break;
+				break;
+			}
 		}
 		return keyi;
 	};
 
+	console.log("Trivial");
 	// unused case.
 	if (BlobbyMan.usedParams[p] === undefined)
 	{
-		return BlobbyMan[p];
+		console.log("Unused case "+p);
+		return BlobbyMan.samples[0][p];
 	}
-	index = BlobbyMan.createKeyIndex();
 	// one key case
-	if (BlobbyMan.samples.length == 1)
-		return BlobbyMan.samples[index[0]][p];
-	var nextKey = findNextKey(animtime);
+	if (BlobbyMan.samples.length == 1) {
+		console.log("One key case "+p);
+		return BlobbyMan.samples[0][p];
+	}
+
+
+	console.log("Complex");
+	keyIndex = BlobbyMan.createKeyIndex();
+	console.log("Index done");
+	var nextKey = findNextKey(animtime|0,p);
+	console.log("Next key "+nextKey);
 	// extrapolating past last key case
+	console.log("Extrapolate");
 	if (nextKey === undefined) {
-		prevKey = index.length() - 1;
-		t1 = index[prevKey];
+		prevKey = keyIndex.length - 1;
+		t1 = keyIndex[prevKey];
 		key1 = BlobbyMan.samples[t1][p];
-		t0 = index[prevKey-1];
+		t0 = keyIndex[prevKey-1];
 		key0 = BlobbyMan.samples[t0][p];
 		alpha = (t0 - t1) / (t0 - animtime);
 		result = key0 + (key1 - key0) * alpha;
 	}
 	if (nextKey >= 1) {
 		// inbetween case
-		t1 = index[nextKey];
+		console.log("Interpolae");
+		t1 = keyIndex[nextKey];
 		key1 = BlobbyMan.samples[t1][p];
 		prevKey = nextKey-1;
-		t0 = index[prevKey];
+		t0 = keyIndex[prevKey];
 		key0 = BlobbyMan.samples[t0][p];
 		alpha = (t0 - t1) / (t0 - animtime);
 		result = key0 + (key1 - key0) * alpha;
 	}
 	else {
 		// extrapolating past first key case
+		console.log("Extrapolate2");
 		prevKey = undefined;
-		t0 = index[nextKey];
+		t0 = keyIndex[nextKey];
 		key0 = BlobbyMan.samples[t0][p];
-		t1 = index[nextKey+1];
+		t1 = keyIndex[nextKey+1];
 		key1 = BlobbyMan.samples[t0][p];
 		alpha = (t0 - t1) / (t0 - animtime);
 		result = key0 + (key1 - key0) * alpha;
@@ -380,12 +400,15 @@ BlobbyMan.playBack = function()
 			BlobbyMan.animTime = oldanimtime;
 		} else {
 			console.log("Interpolate");
-			for(p in BlobbyMan.usedParams) {
-				console.log("Parameter "+ p);
-				var v = BlobbyMan.interpolateParam(p, playTime);
-				console.log("Value "+v);
-				BlobbyMan[p] = v;
-			}
+			$.each(BlobbyMan.usedParams, 
+				  function(p,f) {
+					  if (f !== undefined) {
+						  console.log("Parameter "+ p);					  
+						  var v = BlobbyMan.interpolateParam(p, playTime);
+						  console.log("Value "+v);
+						  BlobbyMan[p] = v;					  						  
+					  }
+				  });
 			console.log("Render");
 	 		BlobbyMan.render();
 			console.log("Next frame");

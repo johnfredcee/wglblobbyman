@@ -53,6 +53,7 @@ BlobbyMan.animtime = 0;
 BlobbyMan.usedParams = {};
 BlobbyMan.samples = [];
 BlobbyMan.maxAnimTime = 60;
+BlobbyMan.inPlayback = false;
 
 BlobbyMan.paramNames = [
 	'exten',
@@ -135,14 +136,46 @@ BlobbyMan.getParams = function ()
 	return animparams;
 };
 
+BlobbyMan.makeKeyButton = function(keytime)
+{
+	var keyid = "keybutton"+keytime.toString();
+	$("#playbutton").last().after("<input type=\"button\" value=\"Key@" + keytime + "\" id=\""+keyid+"\"\>");
+	keyid = "#"+keyid;
+	$(keyid).click(function(e) { BlobbyMan.animtime = keytime; BlobbyMan.render(); });
+	return;
+};
+
 /**
  * Test to see if there is a given frame in the samples
  * array at a given time.
  */
 BlobbyMan.isKeyFrame = function (sampletime)
 {
+	console.log("Sample "+BlobbyMan.samples[sampletime|0]+" @ "+sampletime);
 	return BlobbyMan.samples[sampletime|0] !== undefined;
 };
+
+/**
+ * For debugging. Show it all.
+ */
+BlobbyMan.dumpKeys = function()
+{
+	console.log("Keydump");
+	$.each( BlobbyMan.samples ,
+			function(k, v) {
+				console.log("Time "+k);
+				console.log("Object "+v);
+				if (v !== undefined) {					
+					$.each( v ,
+							function(i,w) {
+								console.log("Parameter "  + i);
+								console.log("Value " + w);
+							}); 
+				}});									  
+
+	
+};
+
 
 /**
  * Ensure samples array gets updated with currently used
@@ -150,35 +183,56 @@ BlobbyMan.isKeyFrame = function (sampletime)
  */
 BlobbyMan.setKeyFrame = function ()
 {
+	var makeButton = false;
+	console.log("setKeyFrame");
 	var keytime = BlobbyMan.animtime | 0;
-	var keyval  = "key@"+keytime.toString();
-	var keyid   = "keybutton"+BlobbyMan.samples.length.toString();
-
+	console.log("KeyFrame@ "+keytime.toString());
 	// first pass, ensure anything left out of used set goes in
-	for (var p in BlobbyMan.paramNames)
-	{
-		if ((p != 'animtime') && (BlobbyMan[p] !== 0.0))
-		{
-			if (BlobbyMan.usedParams[p] !== undefined)
-			{
-				BlobbyMan.usedParams[p] = true;
-			}
-		}
+	$.each(BlobbyMan.paramNames, 
+		   function(i,p) {
+			   // console.log("Parameter " + p);
+			   // console.log("Value " + BlobbyMan[p]);
+			   // console.log("Init Value " + BlobbyMan.samples[0][p]);			   
+			   if ((p !== 'animtime') && (BlobbyMan[p] !== BlobbyMan.samples[0][p]))
+			   {
+				   if (BlobbyMan.usedParams[p] === undefined)
+				   {
+					   // console.log("Using param "+p);
+					   BlobbyMan.usedParams[p] = true;
+				   }
+			   }
+		   });
+
+	/* ensure samples entry is there */
+	if (BlobbyMan.samples[keytime] === undefined) {
+		makeButton = true;
+		BlobbyMan.samples[keytime] = {	};
 	}
-	BlobbyMan.samples[keytime] = {};
-	for (p in BlobbyMan.usedParams)
-	{
-		BlobbyMan.samples[keytime][p] = BlobbyMan[p];
-	}
-	BlobbyMan.samples.sort();
+
+	console.log("Set samples @ "+keytime);
+	$.each(BlobbyMan.usedParams,
+		   function(i,p) {
+			   console.log("Setting Param "+i+" at time "+keytime);
+			   BlobbyMan.samples[keytime][i] = BlobbyMan[i];			   
+		   });
+	//BlobbyMan.samples.sort();
 	//$("#urlbutton").last().after("<input type=\"button\" id=\""+keyid+"\" value=\"" + keyvalue + "\" />");
-	$("#urlbutton").last().after("<input type=\"button\" value=\"" + keyval + "\" id=\"testbutton\"\\>");
+	if (makeButton)
+		BlobbyMan.makeKeyButton(keytime);
+	BlobbyMan.dumpKeys();
+	$("#slidertime .ui-slider-handle").addClass("highlight");
 	return;
 };
 
+
+
+/**
+ * Maintain a sorted lookup table index, that lets us access keys in
+ * an ordered way
+ */
 BlobbyMan.createKeyIndex = function ()
 {
-	index = [];
+	var index = [];
 	for(var keyt in BlobbyMan.samples)
 	{
 		index.push(keyt);
@@ -196,7 +250,9 @@ BlobbyMan.calcParamsUrl = function ()
 	var animtime = undefined;
 
 	var index = BlobbyMan.createKeyIndex();
+	console.log("Calcluating URL");
 	for (var p in BlobbyMan.usedParams) {
+		console.log("Parameter "+p);
 		url = url + p + '=';
 		for (var i = 0; i <  index.length; i++) {
 			animtime = index[i];
@@ -204,12 +260,19 @@ BlobbyMan.calcParamsUrl = function ()
 			url = url + "~";
 			url = url + encodeNumber(BlobbyMan.samples[animtime][p]);
 			url = url + "~";
+			console.log("T " + animtime + " " + BlobbyMan.samples[animtime][p]);
 		}
  		url = substring(0, url.length - 1);
 		url = url + "&";
 	}
  	url = substring(0, url.length - 1);
 	return url;
+};
+
+BlobbyMan.makeParamsUrl = function()
+{
+	var url;
+	url = BlobbyMan.calcParamsUrl();
 };
 
 /**
@@ -287,6 +350,61 @@ BlobbyMan.interpolateParam = function (p, animtime)
 	return result;
 };
 
+/**
+ * Actually play back the animation
+ */
+BlobbyMan.playBack = function()
+{
+	console.log("Playback");
+	if (BlobbyMan.inPlayback === true)
+		return;
+	console.log("In Playback");
+	$("#slidertime").slider("disable");
+	$("#keybutton").attr("disabled", "true");
+	$("#playbutton").attr("disabled", "true");
+	$("#urlbutton").attr("disabled", "true");
+	BlobbyMan.inPlayback = true;
+	var oldanimmtime = BlobbyMan.animTime;
+	var animStartTime = Date.now();
+	var animate     = function(animTime) {
+		var playTime = (animTime-animStartTime) / 1000.0;
+		console.log("Playback @"+playTime);
+	 	if ((playTime|0) >= (BlobbyMan.maxAnimTime|0)) {
+	 		BlobbyMan.inPlayback = false;
+	 		$("#slidertime").slider("enable");
+	 		$("#keybutton").removeAttr("disabled", "true");
+	 		$("#playbutton").removeAttr("disabled", "true");
+	 		$("#urlbutton").removeAttr("disabled", "true");
+			BlobbyMan.animTime = oldanimtime;
+		} else {
+			console.log("Interpolate");
+			for(p in BlobbyMan.usedParams) {
+				console.log("Parameter "+ p);
+				var v = BlobbyMan.interpolateParam(p, playTime);
+				console.log("Value "+v);
+				BlobbyMan[p] = v;
+			}
+			console.log("Render");
+	 		BlobbyMan.render();
+			console.log("Next frame");
+	 		requestAnimationFrame(animate);
+		}			
+	};
+	// 		
+	// 		console.log("Playback finished");
+
+	// 	} else {
+	// 		};
+	// 	};
+	// };
+	console.log("AnimStart @ "+animStartTime);
+	var intervalId    = requestAnimationFrame(animate);
+	return;
+};
+
+/**
+ * Actually draw the chap to the canvas
+ */
 BlobbyMan.render = function () {
 
 	var time = Date.now() * 0.001;
@@ -318,8 +436,8 @@ BlobbyMan.render = function () {
 	this.lfoot.rotation.x = this.lankl;
 	this.rfoot.rotation.x = this.rankl;
 
-	this.camera.position.x += (this.mouseX - this.camera.position.x) * 0.0005;
-	this.camera.position.y += (-this.mouseY - this.camera.position.y) * 0.0005;
+	//	this.camera.position.x += (this.mouseX - this.camera.position.x) * 0.0005;
+	// 	this.camera.position.y += (-this.mouseY - this.camera.position.y) * 0.0005;
 
 	this.camera.lookAt(this.scene.position);
 
@@ -327,6 +445,58 @@ BlobbyMan.render = function () {
 
 };
 
+/**
+ * Initalise the timeline slider
+ */
+BlobbyMan.initTimeSlider = function() {
+	$( "#slidertime" ).slider({ title : "Time", max: BlobbyMan.maxAnimTime, value: 0,
+								change: function (e, ui) {
+									$(document).ready(function () {
+														  // hook up our slider
+														  BlobbyMan.animtime = $("#slidertime").slider( "value" );
+														  console.log("Animtime @ "+BlobbyMan.animtime);
+														  if (BlobbyMan.isKeyFrame(BlobbyMan.animtime)) {
+															  // set highlight
+															  console.log("Is KeyFrame");
+															  $("#slidertime .ui-slider-handle").addClass("highlight");
+														  } else {
+															  // unset highlight
+															  console.log("Is NormalFrame");
+															  $("#slidertime .ui-slider-handle").removeClass("highlight");
+														  }
+														  $("#timestitle").replaceWith("<div id=\"timestitle\">Animation Time "+BlobbyMan.animtime.toString() + "</div>");
+														  console.log("Animtime " + BlobbyMan.animtime.toString());
+														  BlobbyMan.render(); }); } });
+};
+
+/**
+ * Initalise UI buttons
+ */
+BlobbyMan.initButtons = function() {
+
+	$( '#keybutton' ).click(function (e) {
+								e.preventDefault();
+								console.log("Set anim key @" + (BlobbyMan.animtime|0).toString());
+								BlobbyMan.setKeyFrame();
+							});
+
+	$( '#urlbutton' ).click(function (e) {
+								e.preventDefault();
+								BlobbyMan.makeParamsUrl();
+							});
+
+	$( '#playbutton' ).click(function (e) {
+								 console.log("Click playback");
+								 e.preventDefault();
+								 if (BlobbyMan.inPlayback === false) {
+									 BlobbyMan.playBack();
+								 }});
+
+};
+
+/**
+ * Set up inital dialogs, etc
+ */
 BlobbyMan.initui = function () {
 
 	$("#sliderext").slider({title : "Extension", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
@@ -434,27 +604,13 @@ BlobbyMan.initui = function () {
 														   BlobbyMan.rankl = $("#sliderrankl").slider( "value" );
 														   BlobbyMan.render(); }); } });
 
-	$( "#slidertime" ).slider({ title : "Time", max: BlobbyMan.maxAnimTime, min: 0, step : 1, value: 0,
-								slide: function (e, ui) {
-									$(document).ready(function () {
-														  BlobbyMan.animtime = $("#slidertime").slider( "value" );
-														  $("#timestitle").replaceWith("<div id=\"timestitle\">Animation Time "+BlobbyMan.animtime.toString() + "</div>");
-														  console.log("Animtime " + BlobbyMan.animtime.toString());
-														  BlobbyMan.render(); }); } });
-
-	$( '#keybutton' ).click(function (e) {
-								e.preventDefault();
-								console.log("Set anim key @" + (BlobbyMan.animtime|0).toString());
-								BlobbyMan.setKeyFrame();
-							});
-
-	$( '#urlbutton' ).click(function (e) {
-								e.preventDefault();
-								BlobbyMan.makeParamsUrl();
-							});
-
+	BlobbyMan.initTimeSlider();
+	BlobbyMan.initButtons();
 };
 
+/**
+ * Set up initial parameters and callbacks
+ */
 BlobbyMan.init = function () {
 
 	var geometry, material, sphere, container;
@@ -468,6 +624,7 @@ BlobbyMan.init = function () {
 	this.scene = new THREE.Scene();
 	this.scene.fog = new THREE.Fog( 0xffffff, 1, 100 );
 
+	/* set up the camera */
 	this.camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 100 );
 	this.camera.position.y = -5;
 	this.camera.up.z = 1.0;
@@ -476,9 +633,11 @@ BlobbyMan.init = function () {
 	this.camera.lookAt({ x: 0.0, y : 0.0, z: 0.0 });
 	this.scene.add( this.camera );
 
+	/** create a generic sphere and material for us to use **/
 	geometry = new THREE.SphereGeometry( 1.0, 32, 32 );
 	material = new THREE.MeshNormalMaterial();
 
+	/** create the objects that compose the man */
 	this.torso = new THREE.Object3D();
 	this.leftleg  = new THREE.Object3D();
 	this.rightleg  = new THREE.Object3D();
@@ -504,6 +663,8 @@ BlobbyMan.init = function () {
 	this.rlowarm = new THREE.Object3D();
 	this.rhand = new THREE.Object3D();
 
+
+	/** build up the body, node by node **/
 	sphere = new THREE.Mesh( geometry, material );
 	sphere.position.z = 0.08;
 	sphere.scale.x = 0.275;
@@ -774,6 +935,16 @@ BlobbyMan.init = function () {
 
 	this.scene.add( this.torso );
 
+	/** init keys for the first frame **/
+	BlobbyMan.samples[0] = {};
+	$.each(BlobbyMan.paramNames,
+		   function(i,p) {
+			   BlobbyMan.samples[0][p] = BlobbyMan[p];
+		   });
+	
+	BlobbyMan.makeKeyButton(0);
+
+	/** set up the renderer **/
 	this.renderer = new THREE.WebGLRenderer();
 	this.renderer.setSize( window.innerWidth, window.innerHeight );
 	this.renderer.sortObjects = false;
@@ -783,6 +954,7 @@ BlobbyMan.init = function () {
 	this.render();
 };
 
+/**
+ * Here, the rubber meets the road
+ */
 $(document).ready(function () { BlobbyMan.init(); } );
-
-//	document.addEventListener( 'mousemove', onDocumentMouseMove, false );

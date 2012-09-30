@@ -1,4 +1,18 @@
 
+
+.highlight {
+  
+  /* we shouldn't need !important - but i've not yet found the correct css selector :/ (my previous assumption here re. css include ordering was incorrect) */
+  
+  background-color: red !important;
+  background-image: none !important;
+  
+    /* this was the original bg image in the standard jquery-ui stylesheet, for a better effect, you'd /replace/ this with something nice instead of making it 'none' above.
+  url(http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/base/images/ui-bg_glass_75_dadada_1x400.png);
+  */
+    
+}
+
 #renderarea {     
     float:left;
 	width: 500px;

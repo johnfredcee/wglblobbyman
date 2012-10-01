@@ -405,7 +405,7 @@ BlobbyMan.playBack = function()
 	 		$("#playbutton").removeAttr("disabled", "true");
 	 		$("#urlbutton").removeAttr("disabled", "true");
 			BlobbyMan.animTime = oldanimtime;
-			$("#timestitle").replaceWith("<div id=\"timestitle\">Animation Time "+BlobbyMan.animtime.toString() + "</div>");
+			$("#timestitle").replaceWith("<div id=\"timestitle\">Animation Time "+BlobbyMan.animTime.toString() + "</div>");
 			$("#slidertime").slider("value", BlobbyMan.animTime);
 		} else {
 			$("#slidertime").slider("value", playTime | 0);

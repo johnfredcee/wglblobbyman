@@ -385,22 +385,24 @@ BlobbyMan.playBack = function()
 	$("#keybutton").attr("disabled", "true");
 	$("#playbutton").attr("disabled", "true");
 	$("#urlbutton").attr("disabled", "true");
-
 	BlobbyMan.inPlayback = true;
-	var oldanimmtime = BlobbyMan.animTime;
+	var oldanimtime = BlobbyMan.animTime;
 	var animStartTime = Date.now();
 	var animate     = function(animTime) {
 		var playTime = (animTime-animStartTime) / 1000.0;
-		$("slidertime").slider(playTime | 0);
 		console.log("Playback @"+playTime);
-	 	if ((playTime|0) >= (BlobbyMan.maxAnimTime|0)) {
+	 	if ((playTime|0) >= BlobbyMan.samples.length-1) {
 	 		BlobbyMan.inPlayback = false;
 	 		$("#slidertime").slider("enable");
 	 		$("#keybutton").removeAttr("disabled", "true");
 	 		$("#playbutton").removeAttr("disabled", "true");
 	 		$("#urlbutton").removeAttr("disabled", "true");
 			BlobbyMan.animTime = oldanimtime;
+			$("#timestitle").replaceWith("<div id=\"timestitle\">Animation Time "+BlobbyMan.animtime.toString() + "</div>");
+			$("#slidertime").slider("value", BlobbyMan.animTime);
 		} else {
+			$("#slidertime").slider("value", playTime | 0);
+			$("#timestitle").replaceWith("<div id=\"timestitle\">Playback Time "+playTime.toString() + "</div>");
 			console.log("Interpolate");
 			$.each(BlobbyMan.usedParams, 
 				   function(p,f) {

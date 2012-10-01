@@ -281,7 +281,7 @@ BlobbyMan.makeParamsUrl = function()
  */
 BlobbyMan.interpolateParam = function (p, animtime)
 {
-	console.log("Init intep");
+	console.log("Init intep @ ", animtime);
 	/* index of next key */
 	var index;
 	/* times we interpolate between */
@@ -304,9 +304,7 @@ BlobbyMan.interpolateParam = function (p, animtime)
 		console.log("Keycount "+keyIndex.length);
 		var keyi = undefined;
 		for(var i = 0; i < keyIndex.length; ++i) {
-			console.log("Key @ "+i);
 			var ki = keyIndex[i];
-			console.log("KeyI @ "+ki);
 			if ((BlobbyMan.samples[ki][param] !== undefined) && (at < ki)) {
 				keyi = i;
 				break;
@@ -340,10 +338,13 @@ BlobbyMan.interpolateParam = function (p, animtime)
 		prevKey = keyIndex.length - 1;
 		t1 = keyIndex[prevKey];
 		key1 = BlobbyMan.samples[t1][p];
+/*
 		t0 = keyIndex[prevKey-1];
 		key0 = BlobbyMan.samples[t0][p];
 		alpha = (t0 - t1) / (t0 - animtime);
 		result = key0 + (key1 - key0) * alpha;
+*/
+		result = key1;
 	} else {
 		if (nextKey >= 1) {
 			// inbetween case
@@ -353,12 +354,18 @@ BlobbyMan.interpolateParam = function (p, animtime)
 			prevKey = nextKey-1;
 			t0 = keyIndex[prevKey];
 			key0 = BlobbyMan.samples[t0][p];
-			alpha = (t0 - t1) / (t0 - animtime);
+			alpha =  (animtime - t0) / (t1 - t0);
+			console.log("Key0 @ "+keyIndex[prevKey]);
+			console.log("Key1 @ "+keyIndex[nextKey]);
+			console.log("Key0 "+key0);
+			console.log("Key1 "+key1);
+			console.log("Alpha ", alpha);
 			result = key0 + (key1 - key0) * alpha;
 		}
 		else {
 			// extrapolating past first key case
-			console.log("Extrapolate2");
+			console.log("Extrapolate2 -- should never happen");
+			
 			prevKey = undefined;
 			t0 = keyIndex[nextKey];
 			key0 = BlobbyMan.samples[t0][p];

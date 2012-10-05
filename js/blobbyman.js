@@ -81,11 +81,17 @@ BlobbyMan.paramNames = [
  */
 BlobbyMan.encodeNumber = function (num)
 {
+	console.log("Encoding");
 	var validchars = '01234567890ABCDEFGHJIKLMNOPQRSVUWXYZabcdefghjiklmnopqrsvuwxyz-_';
+	console.log("validchars "+validchars);
 	var radix = validchars.length;
+	console.log("radix "+radix);
 	var workingnum = num|0;
 	var result = '';
+	
 
+	if (workingnum === 0)
+		return "0";
 	while (workingnum !== 0)
 	{
 		result = validchars[workingnum % radix] + result;
@@ -138,10 +144,16 @@ BlobbyMan.getParams = function ()
 
 BlobbyMan.makeKeyButton = function(keytime)
 {
-	var keyid = "keybutton"+keytime.toString();
-	$("#playbutton").last().after("<input type=\"button\" value=\"Key@" + keytime + "\" id=\""+keyid+"\"\>");
-	keyid = "#"+keyid;
-	$(keyid).click(function(e) { BlobbyMan.animtime = keytime; BlobbyMan.render(); });
+	// var keyid = "keybutton"+keytime.toString();
+	// $("#playbutton").last().after("<input type=\"button\" value=\"Key@" + keytime + "\" id=\""+keyid+"\"\>");
+	// keyid = "#"+keyid;
+	// $(keyid).click(function(e) { BlobbyMan.animtime = keytime; BlobbyMan.render(); });
+	return;
+};
+
+BlobbyMan.insertComputedUrl = function(url)
+{
+	$("#playbackurl").last().after("<a href=http://www.tiddlywinks.com\playback\""+url+"\" >Playback URL</a>");
 	return;
 };
 
@@ -252,28 +264,39 @@ BlobbyMan.calcParamsUrl = function ()
 
 	var index = BlobbyMan.createKeyIndex();
 	console.log("Calcluating URL");
-	for (var p in BlobbyMan.usedParams) {
-		console.log("Parameter "+p);
-		url = url + p + '=';
-		for (var i = 0; i <  index.length; i++) {
-			animtime = index[i];
-			url = url + encodeNumber(animtime);
-			url = url + "~";
-			url = url + encodeNumber(BlobbyMan.samples[animtime][p]);
-			url = url + "~";
-			console.log("T " + animtime + " " + BlobbyMan.samples[animtime][p]);
-		}
- 		url = substring(0, url.length - 1);
-		url = url + "&";
-	}
- 	url = substring(0, url.length - 1);
+	$.each(BlobbyMan.usedParams,
+		  function(pi, p) {
+			  if (p) {
+				  console.log("Parameter "+pi);
+				  url = url + pi + '=';
+				  $.each(BlobbyMan.samples,
+						 function(st, v) {
+							 console.log("Sample @ "+st);
+							 if ((v != undefined) && (v[pi] !== undefined)) {
+								 console.log("Sample val "+BlobbyMan.samples[st][pi]);
+								 console.log("Sample val "+v[pi]);
+								 url = url + BlobbyMan.encodeNumber(st); // sample time
+								 url = url + "~";
+								 url = url + BlobbyMan.encodeNumber(180.0 + (v[pi] * (180.0 / 3.14))); // sample value
+								 url = url + "~";	
+								 console.log(url);
+							 }							
+						 });
+				  
+			  }
+ 			  url = url.substring(0, url.length - 1);
+			  url = url + "&";
+		  });
+ 	url = url.substring(0, url.length - 1);
 	return url;
-};
+};	
 
 BlobbyMan.makeParamsUrl = function()
 {
 	var url;
 	url = BlobbyMan.calcParamsUrl();
+	BlobbyMan.insertComputedUrl(url);
+	console.log("Url " + url);
 };
 
 /**
@@ -281,7 +304,6 @@ BlobbyMan.makeParamsUrl = function()
  */
 BlobbyMan.interpolateParam = function (p, animtime)
 {
-	console.log("Init intep @ ", animtime);
 	/* index of next key */
 	var index;
 	/* times we interpolate between */
@@ -299,8 +321,8 @@ BlobbyMan.interpolateParam = function (p, animtime)
 
 	var findNextKey = function (at,param)
 	{
-		console.log("Finding next key @ " + at);
-		console.log("Keycount "+keyIndex.length);
+		// console.log("Finding next key @ " + at);
+		// console.log("Keycount "+keyIndex.length);
 		var keyi = undefined;
 		for(var i = 0; i < keyIndex.length; ++i) {
 			var ki = keyIndex[i];
@@ -386,6 +408,86 @@ BlobbyMan.interpolateParam = function (p, animtime)
 	return result;
 };
 
+BlobbyMan.setOnFrame = function (p, frameTime)
+{
+	/* index of next key */
+	var index;
+	/* times we interpolate between */
+	var t0;
+	var t1;
+	/* keys we interpolate between */
+	var key0;
+	var key1;
+	/* interpolant */
+	var alpha;
+	/* index */
+	var keyIndex;
+	/* result */
+	var result;
+
+	var findNextKey = function (param)
+	{
+		var keyi = undefined;
+		for(var i = 0; i < keyIndex.length; ++i) {
+			var ki = keyIndex[i];
+			if ((BlobbyMan.samples[ki][param] !== undefined) && (frameTime < ki)) {
+				keyi = i;
+				break;
+			}
+		}
+		return keyi;
+	};
+
+	var findPrevKey = function(ki, param) {
+		while ((ki !== 0) && (BlobbyMan.samples[keyIndex[ki]][param] === undefined))
+		{
+			ki = ki - 1;
+		}
+		return ki;
+	};
+
+
+	// unused / one key case.
+	if ((BlobbyMan.usedParams[p] === undefined) || (BlobbyMan.samples.length == 1)) {
+		return BlobbyMan.samples[0][p];
+	}
+
+	keyIndex = BlobbyMan.createKeyIndex();
+	var nextKey = findNextKey();
+
+	if (nextKey === undefined) {
+		console.log("Last key");
+		prevKey = findPrevKey(keyIndex.length - 1, p);
+		t1 = keyIndex[prevKey];
+		key1 = BlobbyMan.samples[t1][p];
+/*
+		t0 = keyIndex[prevKey-1];
+		key0 = BlobbyMan.samples[t0][p];
+		alpha = (t0 - t1) / (t0 - animtime);
+		result = key0 + (key1 - key0) * alpha;
+*/
+		result = key1;
+	} else {
+		if (nextKey >= 1) {
+			// inbetween case
+			console.log("Interpolate");
+			t1 = keyIndex[nextKey];
+			key1 = BlobbyMan.samples[t1][p];
+			prevKey = findPrevKey(nextKey-1,p);
+			t0 = keyIndex[prevKey];
+			key0 = BlobbyMan.samples[t0][p];
+			alpha =  (animtime - t0) / (t1 - t0);
+			console.log("Key0 @ "+keyIndex[prevKey]);
+			console.log("Key1 @ "+keyIndex[nextKey]);
+			console.log("Key0 "+key0);
+			console.log("Key1 "+key1);
+			console.log("Alpha ", alpha);
+			result = key0 + (key1 - key0) * alpha;
+		}
+	}	
+	return result;
+};
+
 /**
  * Actually play back the animation
  */
@@ -400,7 +502,7 @@ BlobbyMan.playBack = function()
 	$("#playbutton").attr("disabled", "true");
 	$("#urlbutton").attr("disabled", "true");
 	BlobbyMan.inPlayback = true;
-	var oldanimtime = BlobbyMan.animTime;
+	var oldanimtime = BlobbyMan.animtime;
 	var animStartTime = Date.now();
 	var animate     = function(animTime) {
 		var playTime = (animTime-animStartTime) / 1000.0;
@@ -411,9 +513,9 @@ BlobbyMan.playBack = function()
 	 		$("#keybutton").removeAttr("disabled", "true");
 	 		$("#playbutton").removeAttr("disabled", "true");
 	 		$("#urlbutton").removeAttr("disabled", "true");
-			BlobbyMan.animTime = oldanimtime;
-			$("#timestitle").replaceWith("<div id=\"timestitle\">Animation Time "+BlobbyMan.animTime.toString() + "</div>");
-			$("#slidertime").slider("value", BlobbyMan.animTime);
+			BlobbyMan.animtime = oldanimtime;
+			$("#timestitle").replaceWith("<div id=\"timestitle\">Animation Time "+BlobbyMan.animtime.toString() + "</div>");
+			$("#slidertime").slider("value", BlobbyMan.animtime);
 		} else {
 			$("#slidertime").slider("value", playTime | 0);
 			$("#timestitle").replaceWith("<div id=\"timestitle\">Playback Time "+playTime.toString() + "</div>");
@@ -494,22 +596,27 @@ BlobbyMan.render = function () {
 BlobbyMan.initTimeSlider = function() {
 	$( "#slidertime" ).slider({ title : "Time", max: BlobbyMan.maxAnimTime, value: 0,
 								change: function (e, ui) {
-									$(document).ready(function () {
-														  // hook up our slider
-														  BlobbyMan.animtime = $("#slidertime").slider( "value" );
-														  console.log("Animtime @ "+BlobbyMan.animtime);
-														  if (BlobbyMan.isKeyFrame(BlobbyMan.animtime)) {
-															  // set highlight
-															  console.log("Is KeyFrame");
-															  $("#slidertime .ui-slider-handle").addClass("highlight");
-														  } else {
-															  // unset highlight
-															  console.log("Is NormalFrame");
-															  $("#slidertime .ui-slider-handle").removeClass("highlight");
-														  }
-														  $("#timestitle").replaceWith("<div id=\"timestitle\">Animation Time "+BlobbyMan.animtime.toString() + "</div>");
-														  console.log("Animtime " + BlobbyMan.animtime.toString());
-														  BlobbyMan.render(); }); } });
+									$(document).ready(
+										function () 
+										{
+											// hook up our slider
+											BlobbyMan.animtime = $("#slidertime").slider( "value" );
+											console.log("Animtime @ "+BlobbyMan.animtime);
+											if (BlobbyMan.isKeyFrame(BlobbyMan.animtime)) {
+												// set highlight
+												//console.log("Is KeyFrame");
+												$("#slidertime .ui-slider-handle").addClass("highlight");
+											} else {
+												// unset highlight
+												//console.log("Is NormalFrame");
+												$("#slidertime .ui-slider-handle").removeClass("highlight");
+											}
+											$("#timestitle").replaceWith("<div id=\"timestitle\">Animation Time "+BlobbyMan.animtime.toString() + "</div>");
+											console.log("Animtime " + BlobbyMan.animtime.toString());
+											BlobbyMan.render(); 
+										}); 
+								} 
+							  });
 };
 
 /**
@@ -521,6 +628,7 @@ BlobbyMan.initButtons = function() {
 								e.preventDefault();
 								console.log("Set anim key @" + (BlobbyMan.animtime|0).toString());
 								BlobbyMan.setKeyFrame();
+								BlobbyMan.render(); 
 							});
 
 	$( '#urlbutton' ).click(function (e) {
@@ -545,8 +653,8 @@ BlobbyMan.initui = function () {
 	$("#sliderext").slider({title : "Extension", max: 3.14, min: -3.14, step : 0.05, value: 0.0,
 							slide : function (e, ui) {
 								$(document).ready(function () {
-													  exten = $("#sliderext").slider( "value" );
-													  render(); }); } });
+													  BlobbyMan.exten = $("#sliderext").slider( "value" );
+													  BlobbyMan.render(); }); } });
 
 
 	$("#slidertwist").slider({ title : "Twist ", max: 3.14, min: -3.14, step : 0.05, value: 0.0,

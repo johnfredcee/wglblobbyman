@@ -297,10 +297,9 @@ BlobbyMan.interpolateParam = function (p, animtime)
 	/* result */
 	var result;
 
-	console.log("Find next key");
 	var findNextKey = function (at,param)
 	{
-		console.log("Finding next key");
+		console.log("Finding next key @ " + at);
 		console.log("Keycount "+keyIndex.length);
 		var keyi = undefined;
 		for(var i = 0; i < keyIndex.length; ++i) {
@@ -311,6 +310,14 @@ BlobbyMan.interpolateParam = function (p, animtime)
 			}
 		}
 		return keyi;
+	};
+
+	var findPrevKey = function(ki, param) {
+		while ((ki !== 0) && (BlobbyMan.samples[keyIndex[ki]][param] === undefined))
+		{
+			ki = ki - 1;
+		}
+		return ki;
 	};
 
 	console.log("Trivial");
@@ -334,8 +341,8 @@ BlobbyMan.interpolateParam = function (p, animtime)
 	console.log("Next key "+nextKey);
 	// extrapolating past last key case
 	if (nextKey === undefined) {
-		console.log("Extrapolate");
-		prevKey = keyIndex.length - 1;
+		console.log("Last key");
+		prevKey = findPrevKey(keyIndex.length - 1, p);
 		t1 = keyIndex[prevKey];
 		key1 = BlobbyMan.samples[t1][p];
 /*
@@ -348,10 +355,10 @@ BlobbyMan.interpolateParam = function (p, animtime)
 	} else {
 		if (nextKey >= 1) {
 			// inbetween case
-			console.log("Interpolae");
+			console.log("Interpolate");
 			t1 = keyIndex[nextKey];
 			key1 = BlobbyMan.samples[t1][p];
-			prevKey = nextKey-1;
+			prevKey = findPrevKey(nextKey-1,p);
 			t0 = keyIndex[prevKey];
 			key0 = BlobbyMan.samples[t0][p];
 			alpha =  (animtime - t0) / (t1 - t0);

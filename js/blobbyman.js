@@ -488,6 +488,17 @@ BlobbyMan.setOnFrame = function (p, frameTime)
 	return result;
 };
 
+
+// shim layer with setTimeout fallback
+window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame    ||
+          function( callback ){
+            window.setTimeout(callback, 1000 / 60);
+          };
+})();
+
 /**
  * Actually play back the animation
  */
@@ -505,7 +516,7 @@ BlobbyMan.playBack = function()
 	var oldanimtime = BlobbyMan.animtime;
 	var animStartTime = Date.now();
 	var animate     = function(animTime) {
-		var playTime = (animTime-animStartTime) / 1000.0;
+		var playTime =  /* (animTime-animStartTime) */ (Date.now() - animStartTime) / 1000.0;
 		console.log("Playback @"+playTime);
 	 	if ((playTime|0) >= BlobbyMan.samples.length-1) {
 	 		BlobbyMan.inPlayback = false;
@@ -521,29 +532,22 @@ BlobbyMan.playBack = function()
 			$("#timestitle").replaceWith("<div id=\"timestitle\">Playback Time "+playTime.toString() + "</div>");
 			console.log("Interpolate");
 			$.each(BlobbyMan.usedParams, 
-				   function(p,f) {
-					   if (f !== undefined) {
-						   console.log("Parameter "+ p);					  
-						   var v = BlobbyMan.interpolateParam(p, playTime);
-						   console.log("Value "+v);
-						   BlobbyMan[p] = v;					  						  
-					   }
-				   });
-			console.log("Render");
-	 		BlobbyMan.render();
-			console.log("Next frame");
-	 		requestAnimationFrame(animate);
+				function(p,f) {
+						if (f !== undefined) {
+								console.log("Parameter "+ p);					  
+								var v = BlobbyMan.interpolateParam(p, playTime);
+								console.log("Value "+v);
+								BlobbyMan[p] = v;					  						  
+						}
+				});
+				console.log("Render");
+				BlobbyMan.render();
+				console.log("Next frame");
+				requestAnimationFrame(animate);
 		}
 	};
-	//
-	// 		console.log("Playback finished");
-
-	// 	} else {
-	// 		};
-	// 	};
-	// };
-	console.log("AnimStart @ "+animStartTime);
-	var intervalId    = requestAnimationFrame(animate);
+    console.log("AnimStart @ "+animStartTime);
+    var intervalId    = requestAnimationFrame(animate);
 	return;
 };
 
